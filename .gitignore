@@ -1,0 +1,14 @@
+node_modules/
+.env
+
+# build
+dist/
+dist-ssr/
+
+# logs
+*.log
+
+# editor
+.vscode/
+.idea
+.DS_Store
