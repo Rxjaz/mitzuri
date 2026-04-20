@@ -1,24 +1,38 @@
+import '../utils/env.js';
 import pkg from 'pg';
 const { Pool } = pkg;
 
-const isProduction = process.env.NODE_ENV === 'production';
+const shouldUseSsl =
+  process.env.NODE_ENV === 'production' || process.env.DB_SSL === 'true';
 
-export const pool = new Pool(
-  isProduction
-    ? {
-        connectionString: process.env.DATABASE_URL,
-        ssl: {
-          rejectUnauthorized: false,
-        },
-      }
-    : {
-        host: process.env.DB_HOST,
-        port: process.env.DB_PORT,
-        user: process.env.DB_USER,
-        password: process.env.DB_PASSWORD,
-        database: process.env.DB_NAME,
-      }
+const connectionString = process.env.DATABASE_URL;
+const hasDiscreteDbConfig = Boolean(
+  process.env.DB_HOST &&
+    process.env.DB_USER &&
+    process.env.DB_PASSWORD &&
+    process.env.DB_NAME
 );
+
+const poolConfig = hasDiscreteDbConfig
+  ? {
+      host: process.env.DB_HOST,
+      port: Number(process.env.DB_PORT || 5432),
+      user: process.env.DB_USER,
+      password: process.env.DB_PASSWORD,
+      database: process.env.DB_NAME,
+    }
+  : {
+      connectionString,
+      ...(shouldUseSsl
+        ? {
+            ssl: {
+              rejectUnauthorized: false,
+            },
+          }
+        : {}),
+    };
+
+export const pool = new Pool(poolConfig);
 
 export const testDBConnection = async () => {
   try {
@@ -26,5 +40,10 @@ export const testDBConnection = async () => {
     console.log('DB OK:', res.rows);
   } catch (err) {
     console.error('DB ERROR:', err);
+    throw err;
   }
+};
+
+export const closePool = async () => {
+  await pool.end();
 };

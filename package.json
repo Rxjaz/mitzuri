@@ -1,6 +1,8 @@
 {
   "scripts": {
-    "dev": "concurrently \"npm run dev --prefix backend\" \"npm run dev --prefix frontend\""
+    "dev": "concurrently \"npm run dev --prefix backend\" \"npm run dev --prefix frontend\"",
+    "db:migrate": "npm run migrate --prefix backend",
+    "db:seed": "npm run seed:dev --prefix backend"
   },
   "devDependencies": {
     "concurrently": "^9.2.1"

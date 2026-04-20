@@ -1,3 +1,4 @@
+import './shared/utils/env.js';
 import app from './app.js';
 import { testDBConnection } from './shared/db/index.js';
 
