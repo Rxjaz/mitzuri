@@ -13,15 +13,9 @@ const hasDiscreteDbConfig = Boolean(
     process.env.DB_NAME
 );
 
-const poolConfig = hasDiscreteDbConfig
+const poolConfig =
+  process.env.NODE_ENV === 'production' && connectionString
   ? {
-      host: process.env.DB_HOST,
-      port: Number(process.env.DB_PORT || 5432),
-      user: process.env.DB_USER,
-      password: process.env.DB_PASSWORD,
-      database: process.env.DB_NAME,
-    }
-  : {
       connectionString,
       ...(shouldUseSsl
         ? {
@@ -30,6 +24,13 @@ const poolConfig = hasDiscreteDbConfig
             },
           }
         : {}),
+    }
+  : {
+      host: process.env.DB_HOST,
+      port: Number(process.env.DB_PORT || 5432),
+      user: process.env.DB_USER,
+      password: process.env.DB_PASSWORD,
+      database: process.env.DB_NAME,
     };
 
 export const pool = new Pool(poolConfig);
@@ -47,3 +48,9 @@ export const testDBConnection = async () => {
 export const closePool = async () => {
   await pool.end();
 };
+
+console.log({
+  hasDiscreteDbConfig,
+  DB_HOST: process.env.DB_HOST,
+  DATABASE_URL: process.env.DATABASE_URL ? 'exists' : 'missing'
+});
