@@ -1,5 +1,11 @@
 node_modules/
+
+# environment and secrets
 .env
+.env.*
+!.env.example
+*.dump
+*.sql.gz
 
 # build
 dist/
