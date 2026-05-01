@@ -1,16 +1,24 @@
 import express from 'express';
-import { pool } from './shared/db/index.js';
+import authRoutes from './modules/auth/auth.routes.js';
+import errorMiddleware from "./shared/middleware/error.middleware.js";
 //import mediaRoutes from './modules/media/media.routes.js';
 
 const app = express();
 
 app.use(express.json());
 
-//app.use('/admin/media', mediaRoutes);
-
 app.get('/', (req, res) => {
-  res.send('Sexooooo');
+  res.send('API Running');
 });
 
+app.use('/auth', authRoutes);
+
+//app.use('/admin/media', mediaRoutes);
+
+app.use((req, res) => {
+  res.status(404).json({ error: "Not Found" });
+});
+
+app.use(errorMiddleware);
 
 export default app;
