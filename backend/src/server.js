@@ -13,3 +13,12 @@ const startServer = async () => {
 };
 
 startServer();
+
+import { getAllProjects } from './modules/projects/projects.service.js';
+
+const test = async () => {
+  const data = await getAllProjects();
+  console.log(data);
+};
+
+test();

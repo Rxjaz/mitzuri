@@ -6,7 +6,7 @@ const currentDir = path.dirname(fileURLToPath(import.meta.url));
 const workspaceRoot = path.resolve(currentDir, '../../../../');
 const envPath = path.join(workspaceRoot, '.env');
 
-dotenv.config({ path: envPath, override: true });
+dotenv.config({ path: envPath, override: false });
 
 export const isProduction = process.env.NODE_ENV === 'production';
 export { envPath };
