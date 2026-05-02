@@ -1,46 +1,44 @@
-import * as authRepository from './auth.repository.js';
-import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
+import * as authRepository from "./auth.repository.js";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 import AuthError from "../../shared/errors/auth.error.js";
-import ValidationError from "../../shared/errors/validation.error.js";
-import InternalError from "../../shared/errors/internal.error.js";
 import { getRequiredEnv } from "../../shared/utils/env.js";
 
 
 export const login = async (email, password) => {
 
-    const JWT_SECRET = getRequiredEnv("JWT_SECRET");
+  const JWT_SECRET = getRequiredEnv("JWT_SECRET");
 
-    const user = await authRepository.findByEmail(email);
+  const user = await authRepository.findByEmail(email);
 
-    if (!user) {
-        throw new AuthError('Invalid credentials');
-    };
+  if (!user) {
+    throw new AuthError("Invalid credentials");
+  };
 
-    const isValid = await bcrypt.compare(password, user.password_hash);
+  const isValid = await bcrypt.compare(password, user.password_hash);
 
-    if (!isValid) {
-        throw new AuthError('Invalid credentials');
-    };
+  if (!isValid) {
+    throw new AuthError("Invalid credentials");
+  };
 
-    const payload = {
-        userId: user.id
-    };
+  const payload = {
+    userId: user.id
+  };
 
-    const token = jwt.sign(
-        payload,
-        JWT_SECRET,
-        { expiresIn: '1d' }
-    );
+  const token = jwt.sign(
+    payload,
+    JWT_SECRET,
+    { expiresIn: "1d" }
+  );
 
-    const safeUser = {
-        id: user.id,
-        email: user.email,
-        full_name: user.full_name
-    };
+  const safeUser = {
+    id: user.id,
+    email: user.email,
+    full_name: user.full_name
+  };
 
-    return {
-        user: safeUser,
-        token
-    };
+  return {
+    user: safeUser,
+    token
+  };
 };

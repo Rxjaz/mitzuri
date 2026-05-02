@@ -1,45 +1,45 @@
-import { pool } from '../../shared/db/index.js';
+import { pool } from "../../shared/db/index.js";
 
 export const getAllProjects = async () => {
 
-    const { rows } = await pool.query(`
+  const { rows } = await pool.query(`
         SELECT * FROM projects
         ORDER BY created_at DESC;
     `);
 
-    return rows;
+  return rows;
 };
 
 export const createProject = async (data) => {
 
-    const { rows } = await pool.query(`
+  const { rows } = await pool.query(`
         INSERT INTO projects (title, slug, description, year, client)
         VALUES ($1, $2, $3, $4, $5)
         RETURNING *;
     `, [
-        data.title,
-        data.slug,
-        data.description,
-        data.year,
-        data.client || null
-    ]);
+    data.title,
+    data.slug,
+    data.description,
+    data.year,
+    data.client || null
+  ]);
 
-    return rows[0];
+  return rows[0];
 };
 
 export const getProjectById = async (id) => {
 
-    const { rows } = await pool.query(
-        `SELECT * FROM projects WHERE id = $1`,
-        [id]
-    );
+  const { rows } = await pool.query(
+    "SELECT * FROM projects WHERE id = $1",
+    [id]
+  );
 
-    return rows[0];
+  return rows[0];
 };
 
 export const updateProject = async (id, data) => {
 
-    const { rows } = await pool.query(`
+  const { rows } = await pool.query(`
         UPDATE projects 
         SET
             title = $1,
@@ -52,31 +52,31 @@ export const updateProject = async (id, data) => {
         WHERE id = $7
         RETURNING *;
     `, [
-        data.title,
-        data.slug,
-        data.description,
-        data.year,
-        data.client || null,
-        data.cover_image_url || null,
-        id
-    ]);
+    data.title,
+    data.slug,
+    data.description,
+    data.year,
+    data.client || null,
+    data.cover_image_url || null,
+    id
+  ]);
 
-    return rows[0];
+  return rows[0];
 };
 
 export const deleteProject = async (id) => {
 
-    const { rowCount } = await pool.query(
-        `DELETE FROM projects WHERE id = $1`,
-        [id]
-    );
+  const { rowCount } = await pool.query(
+    "DELETE FROM projects WHERE id = $1",
+    [id]
+  );
 
-    return rowCount;
+  return rowCount;
 };
 
 export const publishProject = async (id) => {
 
-    const { rows } = await pool.query(`
+  const { rows } = await pool.query(`
         UPDATE projects 
         SET
             status = 'published',
@@ -86,12 +86,12 @@ export const publishProject = async (id) => {
         RETURNING *;
     `, [id]);
 
-    return rows[0];
+  return rows[0];
 };
 
 export const unpublishProject = async (id) => {
 
-    const { rows } = await pool.query(`
+  const { rows } = await pool.query(`
         UPDATE projects 
         SET
             status = 'draft',
@@ -101,5 +101,5 @@ export const unpublishProject = async (id) => {
         RETURNING *;
     `, [id]);
 
-    return rows[0];
+  return rows[0];
 };

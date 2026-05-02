@@ -4,7 +4,8 @@ export const validate = (schema) => (req, res, next) => {
   const result = schema.safeParse(req.body);
 
   if (!result.success) {
-    return next(new ValidationError("Invalid input"));
+    const firstError = result.error.errors[0];
+    return next(new ValidationError(firstError.message));
   }
 
   req.body = result.data;
