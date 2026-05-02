@@ -1,7 +1,8 @@
 import express from 'express';
 import authRoutes from './modules/auth/auth.routes.js';
+import projectsRoutes from './modules/projects/projects.routes.js';
+
 import errorMiddleware from "./shared/middleware/error.middleware.js";
-//import mediaRoutes from './modules/media/media.routes.js';
 
 const app = express();
 
@@ -13,7 +14,7 @@ app.get('/', (req, res) => {
 
 app.use('/auth', authRoutes);
 
-//app.use('/admin/media', mediaRoutes);
+app.use('/admin/projects', projectsRoutes);
 
 app.use((req, res) => {
   res.status(404).json({ error: "Not Found" });

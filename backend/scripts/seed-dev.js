@@ -1,5 +1,4 @@
 import bcrypt from 'bcrypt';
-
 import '../src/shared/utils/env.js';
 import { closePool, pool } from '../src/shared/db/index.js';
 
