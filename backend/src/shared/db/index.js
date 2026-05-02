@@ -1,9 +1,9 @@
-import '../utils/env.js';
-import pkg from 'pg';
+import "../utils/env.js";
+import pkg from "pg";
 const { Pool } = pkg;
 
 const shouldUseSsl =
-  process.env.NODE_ENV === 'production' || process.env.DB_SSL === 'true';
+  process.env.NODE_ENV === "production" || process.env.DB_SSL === "true";
 
 const connectionString = process.env.DATABASE_URL;
 const hasDiscreteDbConfig = Boolean(
@@ -16,17 +16,17 @@ const usingConnectionString = Boolean(connectionString);
 
 const poolConfig =
   usingConnectionString
-  ? {
+    ? {
       connectionString,
       ...(shouldUseSsl
         ? {
-            ssl: {
-              rejectUnauthorized: false,
-            },
-          }
+          ssl: {
+            rejectUnauthorized: false,
+          },
+        }
         : {}),
     }
-  : {
+    : {
       host: process.env.DB_HOST,
       port: Number(process.env.DB_PORT || 5432),
       user: process.env.DB_USER,
@@ -38,10 +38,10 @@ export const pool = new Pool(poolConfig);
 
 export const testDBConnection = async () => {
   try {
-    const res = await pool.query('SELECT NOW()');
-    console.log('DB OK:', res.rows);
+    const res = await pool.query("SELECT NOW()");
+    console.log("DB OK:", res.rows);
   } catch (error) {
-    console.error('DB ERROR:', error);
+    console.error("DB ERROR:", error);
     throw error;
   }
 };
@@ -51,9 +51,9 @@ export const closePool = async () => {
 };
 
 console.log({
-  dbConfigMode: usingConnectionString ? 'DATABASE_URL' : 'discrete',
+  dbConfigMode: usingConnectionString ? "DATABASE_URL" : "discrete",
   hasDiscreteDbConfig,
   DB_HOST: process.env.DB_HOST,
-  DATABASE_URL: process.env.DATABASE_URL ? 'exists' : 'missing',
+  DATABASE_URL: process.env.DATABASE_URL ? "exists" : "missing",
   DB_SSL: process.env.DB_SSL
 });

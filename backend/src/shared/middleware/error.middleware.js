@@ -1,4 +1,4 @@
-const errorMiddleware = (err, req, res, next) => {
+const errorMiddleware = (err, req, res) => {
   const status = err.statusCode || 500;
 
   res.status(status).json({
