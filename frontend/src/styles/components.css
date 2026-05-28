@@ -1,0 +1,89 @@
+@layer components {
+  .app-shell {
+    @apply min-h-screen bg-white text-stone-900;
+  }
+
+  .app-shell-muted {
+    @apply min-h-screen bg-stone-100 text-stone-900;
+  }
+
+  .app-header {
+    @apply border-b border-stone-200 bg-white;
+  }
+
+  .app-header-inner {
+    @apply mx-auto flex max-w-6xl items-center justify-between px-6 py-4;
+  }
+
+  .app-brand {
+    @apply text-lg font-semibold tracking-tight;
+  }
+
+  .app-nav {
+    @apply flex items-center gap-4 text-sm text-stone-600;
+  }
+
+  .app-main {
+    @apply mx-auto max-w-6xl px-6 py-10;
+  }
+
+  .panel-card {
+    @apply rounded-2xl border border-stone-200 bg-white p-8 shadow-sm;
+  }
+
+  .panel-card-soft {
+    @apply rounded-2xl border border-stone-200 bg-stone-50 p-8;
+  }
+
+  .page-title {
+    @apply text-3xl font-semibold tracking-tight text-stone-900;
+  }
+
+  .hero-title {
+    @apply text-4xl font-semibold tracking-tight text-stone-900;
+  }
+
+  .page-copy {
+    @apply mt-2 text-sm text-stone-600;
+  }
+
+  .hero-copy {
+    @apply mt-3 max-w-2xl text-sm leading-6 text-stone-600;
+  }
+
+  .auth-page {
+    @apply min-h-screen bg-stone-100 px-6;
+  }
+
+  .auth-center {
+    @apply flex min-h-screen items-center justify-center;
+  }
+
+  .auth-card {
+    @apply w-full max-w-md rounded-2xl border border-stone-200 bg-white p-8 shadow-sm;
+  }
+
+  .auth-header {
+    @apply mb-6;
+  }
+
+  .auth-title {
+    @apply m-0 text-3xl font-semibold tracking-tight text-stone-900;
+  }
+
+  .auth-subtitle {
+    @apply mt-2 text-sm text-stone-600;
+  }
+
+  .form-field {
+    @apply mb-4;
+  }
+
+  .form-label {
+    @apply mb-2 block text-sm font-medium text-stone-700;
+  }
+
+  .form-error {
+    @apply mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700;
+  }
+}
