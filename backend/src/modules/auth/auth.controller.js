@@ -20,7 +20,8 @@ export const logout = async (req, res, next) => {
 
 export const me = async (req, res, next) => {
   try {
-    const user = req.user; 
+    const userId = req.user.userId;
+    const user = await authService.getMe(userId);
     res.json(user);
   } catch (error) {
     next(error);

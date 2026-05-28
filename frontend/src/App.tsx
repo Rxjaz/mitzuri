@@ -1,19 +1,16 @@
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AdminRoutes } from "./app/admin/routes";
+import { PublicRoutes } from "./app/public/routes";
+
 function App() {
   return (
-    <div
-      style={{
-        backgroundColor: "black",
-        color: "white",
-        height: "100vh",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        fontSize: "2rem",
-        fontFamily: "sans-serif",
-      }}
-    >
-      mitzuri.com
-    </div>
+    <BrowserRouter>
+      <Routes>
+        {AdminRoutes()}
+        {PublicRoutes()}
+        <Route path="*" element={<div>Not found</div>} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 
