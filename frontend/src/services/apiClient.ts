@@ -1,4 +1,16 @@
+import { emitUnauthorized, getToken } from "./token.storage";
+
 const API_BASE_URL: string = import.meta.env.VITE_API_BASE_URL;
+
+export class ApiError extends Error {
+  status: number;
+
+  constructor(message: string, status: number) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+  }
+}
 
 async function request<T = unknown>(
   path: string,
@@ -11,7 +23,7 @@ async function request<T = unknown>(
     ...(options.headers as Record<string, string> || {}),
   };
 
-  const token = localStorage.getItem("token");
+  const token = getToken();
 
   if (token) {
     headers["Authorization"] = `Bearer ${token}`;
@@ -38,7 +50,12 @@ async function request<T = unknown>(
         ? (data as { error: string }).error
         : "Request failed";
 
-    throw new Error(message);
+    //token expirado o invalido: avisar para que la sesion se cierre sola
+    if (response.status === 401 && token) {
+      emitUnauthorized();
+    }
+
+    throw new ApiError(message, response.status);
   }
 
   return data as T;
@@ -64,5 +81,5 @@ export const apiClient = {
   delete: <T = unknown>(path: string) =>
     request<T>(path, {
       method: "DELETE"
-    }), 
+    }),
 };

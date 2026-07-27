@@ -1,6 +1,15 @@
-import { Link, Outlet } from "react-router-dom";
+import { Link, Outlet, useNavigate } from "react-router-dom";
+import { useAuth } from "../auth/useAuth";
 
 export default function AdminLayout() {
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
+
+  const handleLogout = async () => {
+    await logout();
+    navigate("/admin/login", { replace: true });
+  };
+
   return (
     <div className="app-shell-muted">
       <header className="app-header">
@@ -11,7 +20,10 @@ export default function AdminLayout() {
 
           <nav className="app-nav">
             <Link to="/admin">Dashboard</Link>
-            <Link to="/admin/login">Login</Link>
+            {user && <span>{user.full_name || user.email}</span>}
+            <button type="button" onClick={handleLogout}>
+              Salir
+            </button>
           </nav>
         </div>
       </header>

@@ -1,12 +1,17 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { login } from "../../../services/auth.service";
+import { useLocation, useNavigate, type Location } from "react-router-dom";
+import { useAuth } from "../auth/useAuth";
 import Button from "../../../components/ui/Button";
 import Card from "../../../components/ui/Card";
 import Input from "../../../components/ui/Input";
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { login } = useAuth();
+
+  //si el guard redirigio hasta aqui, se vuelve a la ruta original
+  const from = (location.state as { from?: Location } | null)?.from?.pathname;
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -21,19 +26,17 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-        const user  = await login(email, password);
+      await login(email, password);
 
-        console.log("Logged in:", user);
-
-        navigate("/admin");
+      navigate(from ?? "/admin", { replace: true });
     } catch (error) {
-        if (error instanceof Error) {
-            setError(error.message);
-        } else {
-            setError("Unexpected error");
-        }
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError("Unexpected error");
+      }
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
   };
 
@@ -77,4 +80,4 @@ export default function LoginPage() {
       </div>
     </div>
   );
-};
+}
