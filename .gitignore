@@ -14,6 +14,9 @@ dist-ssr/
 # logs
 *.log
 
+# documentacion interna de trabajo (no se publica)
+docs/
+
 # editor
 .vscode/
 .idea

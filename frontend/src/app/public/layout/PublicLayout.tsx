@@ -8,10 +8,6 @@ export default function PublicLayout() {
           <Link to="/" className="app-brand">
             Mitzuri
           </Link>
-
-          <nav className="app-nav">
-            <Link to="/admin/login">Admin</Link>
-          </nav>
         </div>
       </header>
 
