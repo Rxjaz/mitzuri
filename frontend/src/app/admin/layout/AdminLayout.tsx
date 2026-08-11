@@ -20,6 +20,7 @@ export default function AdminLayout() {
 
           <nav className="app-nav">
             <Link to="/admin">Dashboard</Link>
+            <Link to="/admin/projects">Proyectos</Link>
             {user && <span>{user.full_name || user.email}</span>}
             <button type="button" onClick={handleLogout}>
               Salir
