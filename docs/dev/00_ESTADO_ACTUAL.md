@@ -1,14 +1,28 @@
 # Estado actual del repo
 
-Snapshot revisado el `2026-08-09` sobre el working tree actual.
+Snapshot revisado el `2026-08-11` sobre el working tree actual.
 
 ## Resumen ejecutivo
 
 `Mitzuri` ya tiene el CRUD de proyectos conectado de punta a punta: el admin puede listar, crear, editar, publicar, despublicar y eliminar proyectos desde la UI, sin tocar la base.
 
-Con eso, Fase 2 queda practicamente cerrada. Lo pendiente ahora es media (Fase 4) o secciones (Fase 5), que son lo que le da contenido real a un proyecto.
+Los proyectos ahora tienen tres estados. `unlisted` permite compartir un proyecto terminado por URL sin que aparezca en el feed publico, que es como la disenadora trabaja con clientes.
 
-## Cambios desde el snapshot anterior (`2026-07-27`)
+Con eso, Fase 2 queda cerrada. Lo siguiente es el sistema visual y despues media (Fase 4).
+
+## Cambios desde el snapshot anterior (`2026-08-09`)
+
+- se normalizaron los finales de linea con `.gitattributes`; antes cada archivo tocado en Windows aparecia como reescrito entero y ensuciaba todos los diffs
+- se agrego `CLAUDE.md` en la raiz con las convenciones del repo
+- `docs/` dejo de estar en `.gitignore` y ahora se versiona
+- se creo `docs/specs/`, donde vive una spec ejecutable por tarea
+- tercer estado de proyecto: `draft`, `unlisted`, `published` (migracion `007`)
+- nueva columna `projects.slug_locked`
+- nuevo endpoint `POST /admin/projects/:id/unlist`
+- **fix**: el slug se congelaba solo mientras el proyecto estuviera publicado, asi que despublicar lo volvia a liberar y cambiar el titulo rompia una URL ya compartida. Ahora el bloqueo es permanente desde la primera vez que el proyecto deja de ser borrador
+- `ProjectsPage` muestra solo las transiciones validas segun el estado actual
+
+## Cambios del snapshot `2026-08-09`
 
 - `services/projects.service.ts` cubre las siete operaciones del CRUD
 - `types/project.ts` tipa `Project` y `ProjectInput`
@@ -142,7 +156,10 @@ Pendiente de verificar manualmente en navegador: alta, edicion, publicar/despubl
 2. ~~sesion valida~~ hecho
 3. ~~listado de proyectos~~ hecho
 4. ~~creacion y edicion base~~ hecho
-5. contenido del proyecto: media o secciones
-6. rutas publicas de proyectos
+5. ~~estados de publicacion~~ hecho
+6. sistema visual: tokens de color y tipografia
+7. contenido del proyecto: media, empezando por la portada
+8. secciones
+9. rutas publicas de proyectos
 
 El proximo corte es de backend nuevo, no de UI. Un proyecto hoy solo tiene metadatos; para que valga la pena publicarlo necesita cuerpo. Las dos opciones son el modulo `media` (Fase 4, ya hay tabla y cliente R2) o el modulo `sections` (Fase 5, ya hay tabla). Conviene `media` primero, porque las secciones de imagen dependen de tener assets.

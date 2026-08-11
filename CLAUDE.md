@@ -84,6 +84,15 @@ src/
   variantes como `Record<Variant, string>` de clases completas.
 - Tailwind 4. `cn` de `lib/cn.ts` **solo concatena**, no resuelve conflictos de
   Tailwind — cada variante trae su set completo de clases.
+- **Prohibido usar colores literales de Tailwind** (`stone-900`, `blue-600`,
+  `gray-100`…). Solo tokens del `@theme` de `index.css`: `ink`, `ink-muted`,
+  `paper`, `surface`, `border`, `brand`, `brand-strong`, `brand-soft`,
+  `danger`. Si un color que necesitas no existe como token, **pregunta** — no
+  lo inventes.
+- Tipografía: `font-display` (Yeseva One) **solo en el sitio público y solo a
+  24px o más**; no tiene bold ni itálica, así que la jerarquía se hace con
+  tamaño y espaciado. Todo lo demás en `font-sans` (Be Vietnam Pro). El admin
+  nunca carga la display.
 - El token vive en `localStorage`, aislado en `services/token.storage.ts`.
 
 ### Base de datos
