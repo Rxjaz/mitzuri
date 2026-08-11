@@ -88,13 +88,15 @@ export const deleteProject = async (id) => {
   return rowCount;
 };
 
+//salir de borrador bloquea el slug para siempre: la URL ya pudo compartirse
 export const publishProject = async (id) => {
 
   const { rows } = await pool.query(`
-        UPDATE projects 
+        UPDATE projects
         SET
             status = 'published',
             published_at = COALESCE(published_at, NOW()),
+            slug_locked = true,
             updated_at = NOW()
         WHERE id = $1
         RETURNING *;
@@ -103,10 +105,27 @@ export const publishProject = async (id) => {
   return rows[0];
 };
 
+export const unlistProject = async (id) => {
+
+  const { rows } = await pool.query(`
+        UPDATE projects
+        SET
+            status = 'unlisted',
+            published_at = COALESCE(published_at, NOW()),
+            slug_locked = true,
+            updated_at = NOW()
+        WHERE id = $1
+        RETURNING *;
+    `, [id]);
+
+  return rows[0];
+};
+
+//volver a borrador NO desbloquea el slug: el bloqueo es permanente
 export const unpublishProject = async (id) => {
 
   const { rows } = await pool.query(`
-        UPDATE projects 
+        UPDATE projects
         SET
             status = 'draft',
             published_at = NULL,

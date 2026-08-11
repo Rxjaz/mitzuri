@@ -12,6 +12,7 @@ router.put("/:id", validate(updateProjectSchema), projectsController.update);
 router.delete("/:id", projectsController.remove);
 
 router.post("/:id/publish", projectsController.publish);
+router.post("/:id/unlist", projectsController.unlist);
 router.post("/:id/unpublish", projectsController.unpublish);
 
 export default router;

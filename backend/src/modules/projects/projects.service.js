@@ -46,12 +46,13 @@ export const updateProject = async (id, data) => {
     throw new NotFoundError("Project not found");
   }
 
-  //en borrador el slug sigue al titulo; una vez publicado se congela para no
-  //romper la URL que ya pudo compartirse
+  //el slug sigue al titulo solo mientras nunca haya salido de borrador. El
+  //bloqueo es permanente: una URL que ya pudo compartirse no se recicla nunca,
+  //ni siquiera si el proyecto vuelve a borrador
   const titleChanged = Boolean(data.title) && data.title !== existing.title;
 
   const slug =
-    titleChanged && existing.status === "draft"
+    titleChanged && !existing.slug_locked
       ? await buildUniqueSlug(data.title, id)
       : existing.slug;
 
@@ -89,6 +90,16 @@ export const publishProject = async (id) => {
   // }
 
   return await projectsRepository.publishProject(id);
+};
+
+export const unlistProject = async (id) => {
+  const project = await projectsRepository.getProjectById(id);
+
+  if (!project) {
+    throw new NotFoundError("Project not found");
+  }
+
+  return await projectsRepository.unlistProject(id);
 };
 
 export const unpublishProject = async (id) => {

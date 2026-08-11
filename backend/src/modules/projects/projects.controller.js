@@ -54,6 +54,15 @@ export const publish = async (req, res, next) => {
   }
 };
 
+export const unlist = async (req, res, next) => {
+  try {
+    const project = await projectsService.unlistProject(req.params.id);
+    res.json(project);
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const unpublish = async (req, res, next) => {
   try {
     const project = await projectsService.unpublishProject(req.params.id);
