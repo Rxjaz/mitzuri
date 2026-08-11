@@ -7,10 +7,24 @@ export const getAllProjects = async () => {
   return await projectsRepository.getAllProjects();
 };
 
-export const createProject = async (data) => {
-  if (!data.slug) {
-    data.slug = generateSlug(data.title);
+//el slug siempre sale del titulo, nunca del cliente. Como la columna es UNIQUE,
+//dos titulos iguales chocarian, asi que se numera el repetido: -2, -3, etc.
+const buildUniqueSlug = async (title, excludeId = null) => {
+  const base = generateSlug(title) || "proyecto";
+
+  let candidate = base;
+  let suffix = 1;
+
+  while (await projectsRepository.slugExists(candidate, excludeId)) {
+    suffix += 1;
+    candidate = `${base}-${suffix}`;
   }
+
+  return candidate;
+};
+
+export const createProject = async (data) => {
+  data.slug = await buildUniqueSlug(data.title);
 
   return await projectsRepository.createProject(data);
 };
@@ -32,13 +46,18 @@ export const updateProject = async (id, data) => {
     throw new NotFoundError("Project not found");
   }
 
-  if (data.title && !data.slug) {
-    data.slug = generateSlug(data.title);
-  }
+  //en borrador el slug sigue al titulo; una vez publicado se congela para no
+  //romper la URL que ya pudo compartirse
+  const titleChanged = Boolean(data.title) && data.title !== existing.title;
+
+  const slug =
+    titleChanged && existing.status === "draft"
+      ? await buildUniqueSlug(data.title, id)
+      : existing.slug;
 
   const updateData = {
     title: data.title ?? existing.title,
-    slug: data.slug ?? existing.slug,
+    slug,
     description: data.description ?? existing.description,
     year: data.year ?? existing.year,
     client: data.client ?? existing.client,

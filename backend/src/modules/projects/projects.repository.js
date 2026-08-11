@@ -13,18 +13,32 @@ export const getAllProjects = async () => {
 export const createProject = async (data) => {
 
   const { rows } = await pool.query(`
-        INSERT INTO projects (title, slug, description, year, client)
-        VALUES ($1, $2, $3, $4, $5)
+        INSERT INTO projects (title, slug, description, year, client, cover_image_url)
+        VALUES ($1, $2, $3, $4, $5, $6)
         RETURNING *;
     `, [
     data.title,
     data.slug,
     data.description,
     data.year,
-    data.client || null
+    data.client || null,
+    data.cover_image_url || null
   ]);
 
   return rows[0];
+};
+
+//se usa para garantizar que el slug generado sea unico; al editar hay que
+//excluir el propio proyecto, si no chocaria consigo mismo
+export const slugExists = async (slug, excludeId = null) => {
+
+  const { rows } = await pool.query(`
+        SELECT 1 FROM projects
+        WHERE slug = $1 AND ($2::uuid IS NULL OR id <> $2)
+        LIMIT 1;
+    `, [slug, excludeId]);
+
+  return rows.length > 0;
 };
 
 export const getProjectById = async (id) => {
