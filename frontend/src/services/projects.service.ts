@@ -31,6 +31,10 @@ export const publishProject = (id: string): Promise<Project> => {
   return apiClient.post<Project>(`${BASE_PATH}/${id}/publish`);
 };
 
+export const unlistProject = (id: string): Promise<Project> => {
+  return apiClient.post<Project>(`${BASE_PATH}/${id}/unlist`);
+};
+
 export const unpublishProject = (id: string): Promise<Project> => {
   return apiClient.post<Project>(`${BASE_PATH}/${id}/unpublish`);
 };

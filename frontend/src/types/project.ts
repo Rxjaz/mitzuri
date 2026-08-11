@@ -1,4 +1,4 @@
-export type ProjectStatus = "draft" | "published";
+export type ProjectStatus = "draft" | "unlisted" | "published";
 
 export type Project = {
   id: string;
@@ -7,6 +7,8 @@ export type Project = {
   description: string;
   cover_image_url: string | null;
   status: ProjectStatus;
+  //una vez que el proyecto sale de borrador el slug queda fijo para siempre
+  slug_locked: boolean;
   year: number;
   client: string | null;
   created_at: string;

@@ -131,6 +131,12 @@
     @apply bg-stone-100 text-stone-600 ring-1 ring-stone-200 ring-inset;
   }
 
+  /* `unlisted` es un estado normal, no una advertencia: tono neutro y solido
+     para que se distinga del borrador sin leerse como alerta */
+  .badge-unlisted {
+    @apply bg-stone-800 text-white;
+  }
+
   .empty-state {
     @apply rounded-xl border border-dashed border-stone-300 bg-stone-50 px-6 py-10 text-center;
   }

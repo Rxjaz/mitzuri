@@ -4,12 +4,40 @@ import {
   deleteProject,
   getProjects,
   publishProject,
+  unlistProject,
   unpublishProject,
 } from "../../../services/projects.service";
-import type { Project } from "../../../types/project";
+import type { Project, ProjectStatus } from "../../../types/project";
 import Button from "../../../components/ui/Button";
 
 type LoadState = "loading" | "ready" | "error";
+
+const STATUS_LABELS: Record<ProjectStatus, string> = {
+  draft: "Borrador",
+  unlisted: "No listado",
+  published: "Publicado",
+};
+
+type StatusAction = {
+  label: string;
+  run: (id: string) => Promise<Project>;
+};
+
+//cada estado solo ofrece las transiciones que tienen sentido desde ahi
+const STATUS_ACTIONS: Record<ProjectStatus, StatusAction[]> = {
+  draft: [
+    { label: "Publicar", run: publishProject },
+    { label: "Compartir en privado", run: unlistProject },
+  ],
+  unlisted: [
+    { label: "Publicar", run: publishProject },
+    { label: "Volver a borrador", run: unpublishProject },
+  ],
+  published: [
+    { label: "Quitar del feed", run: unlistProject },
+    { label: "Volver a borrador", run: unpublishProject },
+  ],
+};
 
 const formatDate = (value: string): string => {
   return new Date(value).toLocaleDateString("es-MX", {
@@ -80,13 +108,6 @@ export default function ProjectsPage() {
     }
   };
 
-  const handleTogglePublish = (project: Project) => {
-    const toggle =
-      project.status === "published" ? unpublishProject : publishProject;
-
-    return runAction(project.id, () => toggle(project.id));
-  };
-
   const handleDelete = (project: Project) => {
     const confirmed = window.confirm(
       `Eliminar "${project.title}"? Esta accion no se puede deshacer.`
@@ -149,7 +170,7 @@ export default function ProjectsPage() {
                   </td>
                   <td>
                     <span className={`badge badge-${project.status}`}>
-                      {project.status === "published" ? "Publicado" : "Borrador"}
+                      {STATUS_LABELS[project.status]}
                     </span>
                   </td>
                   <td>{project.year}</td>
@@ -164,16 +185,19 @@ export default function ProjectsPage() {
                         Editar
                       </Link>
 
-                      <Button
-                        variant="secondary"
-                        className="px-3 py-1.5"
-                        disabled={busyId === project.id}
-                        onClick={() => handleTogglePublish(project)}
-                      >
-                        {project.status === "published"
-                          ? "Despublicar"
-                          : "Publicar"}
-                      </Button>
+                      {STATUS_ACTIONS[project.status].map((action) => (
+                        <Button
+                          key={action.label}
+                          variant="secondary"
+                          className="px-3 py-1.5"
+                          disabled={busyId === project.id}
+                          onClick={() =>
+                            runAction(project.id, () => action.run(project.id))
+                          }
+                        >
+                          {action.label}
+                        </Button>
+                      ))}
 
                       <Button
                         variant="danger"

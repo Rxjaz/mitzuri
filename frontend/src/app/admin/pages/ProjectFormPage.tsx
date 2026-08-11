@@ -152,9 +152,9 @@ export default function ProjectFormPage() {
             <span className="form-label">URL publica</span>
             <p className="field-hint">
               /proyectos/<strong>{current.slug}</strong>
-              {current.status === "published"
+              {current.slug_locked
                 ? " · fija, ya no cambia aunque edites el titulo"
-                : " · se regenera desde el titulo hasta que publiques"}
+                : " · se regenera desde el titulo hasta que salga de borrador"}
             </p>
           </div>
         )}
