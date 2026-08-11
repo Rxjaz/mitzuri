@@ -1,0 +1,17 @@
+# Normaliza los finales de linea.
+# Windows escribe CRLF; el repositorio guarda siempre LF.
+# Sin esto, cada archivo tocado en Windows aparece como "reescrito entero"
+# aunque no haya cambiado una sola letra.
+* text=auto eol=lf
+
+# Binarios: nunca tocar.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.avif binary
+*.ico binary
+*.pdf binary
+*.woff binary
+*.woff2 binary
