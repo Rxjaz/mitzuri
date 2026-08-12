@@ -21,6 +21,10 @@ Con eso, Fase 2 queda cerrada. Lo siguiente es el sistema visual y despues media
 - nuevo endpoint `POST /admin/projects/:id/unlist`
 - **fix**: el slug se congelaba solo mientras el proyecto estuviera publicado, asi que despublicar lo volvia a liberar y cambiar el titulo rompia una URL ya compartida. Ahora el bloqueo es permanente desde la primera vez que el proyecto deja de ser borrador
 - `ProjectsPage` muestra solo las transiciones validas segun el estado actual
+- sistema visual real: tokens de color y tipografia en el `@theme` de `index.css`, con la identidad de la disenadora (Yeseva One, Be Vietnam Pro, `#070707`, `#FFFFFF`, `#0D30F2`)
+- fuentes self-hosted con `@fontsource`; la display solo se importa en `PublicLayout`, el admin va todo en Be Vietnam Pro
+- se eliminaron los colores literales de Tailwind del codigo, salvo en `FeedLabPage`, que es maqueta desechable
+- el boton primario pasa de negro a azul de marca
 
 ## Cambios del snapshot `2026-08-09`
 
@@ -157,7 +161,7 @@ Pendiente de verificar manualmente en navegador: alta, edicion, publicar/despubl
 3. ~~listado de proyectos~~ hecho
 4. ~~creacion y edicion base~~ hecho
 5. ~~estados de publicacion~~ hecho
-6. sistema visual: tokens de color y tipografia
+6. ~~sistema visual: tokens de color y tipografia~~ hecho
 7. contenido del proyecto: media, empezando por la portada
 8. secciones
 9. rutas publicas de proyectos

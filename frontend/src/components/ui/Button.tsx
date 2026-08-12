@@ -11,10 +11,11 @@ type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 //`cn` solo concatena, no resuelve conflictos de Tailwind, asi que cada
 //variante trae su propio set de clases en vez de sobreescribir la base
 const VARIANTS: Record<ButtonVariant, string> = {
-  primary: "bg-stone-900 text-white hover:bg-stone-800",
-  secondary:
-    "border border-stone-300 bg-white text-stone-700 hover:bg-stone-100",
-  danger: "border border-red-200 bg-white text-red-700 hover:bg-red-50",
+  //la accion principal del producto lleva el color del producto
+  primary: "bg-brand text-paper hover:bg-brand-strong",
+  secondary: "border border-border bg-paper text-ink hover:bg-surface",
+  //el rojo aqui es semantico, no de marca
+  danger: "border border-danger bg-paper text-danger hover:bg-danger/5",
 };
 
 export default function Button({
