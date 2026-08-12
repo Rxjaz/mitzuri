@@ -1,3 +1,5 @@
+//la display se carga solo aqui: el admin es herramienta de trabajo y no la usa
+import "@fontsource/yeseva-one/400.css";
 import { Link, Outlet } from "react-router-dom";
 
 export default function PublicLayout() {

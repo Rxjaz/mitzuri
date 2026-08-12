@@ -1,4 +1,30 @@
 @import "tailwindcss";
+
+@theme {
+  /* tipografia */
+  --font-display: "Yeseva One", Georgia, serif;
+  --font-sans: "Be Vietnam Pro", system-ui, sans-serif;
+
+  /* escala display — solo sitio publico, nunca bajo 24px */
+  --text-display-xl: 4rem;
+  --text-display-xl--line-height: 1.05;
+  --text-display-lg: 2.75rem;
+  --text-display-lg--line-height: 1.1;
+  --text-display-md: 1.75rem;
+  --text-display-md--line-height: 1.2;
+
+  /* color */
+  --color-ink: #070707;         /* texto principal */
+  --color-ink-muted: #5c5c61;   /* texto secundario — 6.6:1 sobre blanco */
+  --color-paper: #ffffff;       /* fondo base */
+  --color-surface: #f5f5f7;     /* fondo sutil de bloques */
+  --color-border: #e2e2e6;      /* bordes y separadores */
+  --color-brand: #0d30f2;       /* azul de marca — 7.7:1 con blanco */
+  --color-brand-strong: #0a26c2;/* hover y estados presionados */
+  --color-brand-soft: #edf0fe;  /* fondo tenue de marca */
+  --color-danger: #b42318;      /* semantico, no de marca */
+}
+
 @import "./styles/components.css";
 
 html,
@@ -9,4 +35,7 @@ body,
 
 body {
   margin: 0;
+  font-family: var(--font-sans);
+  color: var(--color-ink);
+  background-color: var(--color-paper);
 }

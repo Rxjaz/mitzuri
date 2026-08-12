@@ -1,14 +1,14 @@
 @layer components {
   .app-shell {
-    @apply min-h-screen bg-white text-stone-900;
+    @apply min-h-screen bg-paper text-ink;
   }
 
   .app-shell-muted {
-    @apply min-h-screen bg-stone-100 text-stone-900;
+    @apply min-h-screen bg-surface text-ink;
   }
 
   .app-header {
-    @apply border-b border-stone-200 bg-white;
+    @apply border-b border-border bg-paper;
   }
 
   .app-header-inner {
@@ -20,7 +20,7 @@
   }
 
   .app-nav {
-    @apply flex items-center gap-4 text-sm text-stone-600;
+    @apply flex items-center gap-4 text-sm text-ink-muted;
   }
 
   .app-main {
@@ -28,31 +28,31 @@
   }
 
   .panel-card {
-    @apply rounded-2xl border border-stone-200 bg-white p-8 shadow-sm;
+    @apply rounded-2xl border border-border bg-paper p-8 shadow-sm;
   }
 
   .panel-card-soft {
-    @apply rounded-2xl border border-stone-200 bg-stone-50 p-8;
+    @apply rounded-2xl border border-border bg-surface p-8;
   }
 
   .page-title {
-    @apply text-3xl font-semibold tracking-tight text-stone-900;
+    @apply text-3xl font-semibold tracking-tight text-ink;
   }
 
   .hero-title {
-    @apply text-4xl font-semibold tracking-tight text-stone-900;
+    @apply text-4xl font-semibold tracking-tight text-ink;
   }
 
   .page-copy {
-    @apply mt-2 text-sm text-stone-600;
+    @apply mt-2 text-sm text-ink-muted;
   }
 
   .hero-copy {
-    @apply mt-3 max-w-2xl text-sm leading-6 text-stone-600;
+    @apply mt-3 max-w-2xl text-sm leading-6 text-ink-muted;
   }
 
   .auth-page {
-    @apply min-h-screen bg-stone-100 px-6;
+    @apply min-h-screen bg-surface px-6;
   }
 
   .auth-center {
@@ -60,7 +60,7 @@
   }
 
   .auth-card {
-    @apply w-full max-w-md rounded-2xl border border-stone-200 bg-white p-8 shadow-sm;
+    @apply w-full max-w-md rounded-2xl border border-border bg-paper p-8 shadow-sm;
   }
 
   .auth-header {
@@ -68,11 +68,11 @@
   }
 
   .auth-title {
-    @apply m-0 text-3xl font-semibold tracking-tight text-stone-900;
+    @apply m-0 text-3xl font-semibold tracking-tight text-ink;
   }
 
   .auth-subtitle {
-    @apply mt-2 text-sm text-stone-600;
+    @apply mt-2 text-sm text-ink-muted;
   }
 
   .form-field {
@@ -80,11 +80,11 @@
   }
 
   .form-label {
-    @apply mb-2 block text-sm font-medium text-stone-700;
+    @apply mb-2 block text-sm font-medium text-ink;
   }
 
   .form-error {
-    @apply mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700;
+    @apply mb-4 rounded-xl border border-danger/30 bg-danger/5 px-4 py-3 text-sm text-danger;
   }
 
   .page-header {
@@ -100,11 +100,11 @@
   }
 
   .data-table th {
-    @apply border-b border-stone-200 px-2 py-3 text-xs font-medium tracking-wide text-stone-500 uppercase;
+    @apply border-b border-border px-2 py-3 text-xs font-medium tracking-wide text-ink-muted uppercase;
   }
 
   .data-table td {
-    @apply border-b border-stone-100 px-2 py-4 align-middle text-stone-700;
+    @apply border-b border-border px-2 py-4 align-middle text-ink;
   }
 
   .data-table tbody tr:last-child td {
@@ -112,11 +112,11 @@
   }
 
   .cell-strong {
-    @apply block font-medium text-stone-900;
+    @apply block font-medium text-ink;
   }
 
   .cell-muted {
-    @apply block text-xs text-stone-500;
+    @apply block text-xs text-ink-muted;
   }
 
   .badge {
@@ -124,25 +124,25 @@
   }
 
   .badge-published {
-    @apply bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200 ring-inset;
+    @apply bg-brand-soft text-brand-strong;
   }
 
   .badge-draft {
-    @apply bg-stone-100 text-stone-600 ring-1 ring-stone-200 ring-inset;
+    @apply bg-surface text-ink-muted ring-1 ring-border ring-inset;
   }
 
-  /* `unlisted` es un estado normal, no una advertencia: tono neutro y solido
-     para que se distinga del borrador sin leerse como alerta */
+  /* `unlisted` es un estado normal, no una advertencia: solido y neutro para
+     que se distinga del borrador sin leerse como alerta */
   .badge-unlisted {
-    @apply bg-stone-800 text-white;
+    @apply bg-ink text-paper;
   }
 
   .empty-state {
-    @apply rounded-xl border border-dashed border-stone-300 bg-stone-50 px-6 py-10 text-center;
+    @apply rounded-xl border border-dashed border-border bg-surface px-6 py-10 text-center;
   }
 
   .empty-state-title {
-    @apply text-sm font-medium text-stone-900;
+    @apply text-sm font-medium text-ink;
   }
 
   .form-row {
@@ -158,14 +158,15 @@
   }
 
   .field-hint {
-    @apply text-sm text-stone-500;
+    @apply text-sm text-ink-muted;
   }
 
   .btn-link {
-    @apply text-sm font-medium text-stone-600 underline-offset-4 transition hover:text-stone-900 hover:underline;
+    @apply text-sm font-medium text-ink-muted underline-offset-4 transition hover:text-ink hover:underline;
   }
 
+  /* espeja la variante `primary` de Button, que ahora lleva el azul de marca */
   .btn-primary-link {
-    @apply inline-flex shrink-0 items-center justify-center rounded-xl bg-stone-900 px-4 py-3 text-sm font-medium text-white transition hover:bg-stone-800;
+    @apply inline-flex shrink-0 items-center justify-center rounded-xl bg-brand px-4 py-3 text-sm font-medium text-paper transition hover:bg-brand-strong;
   }
 }
