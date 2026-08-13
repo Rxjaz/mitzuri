@@ -123,18 +123,20 @@
     @apply inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium;
   }
 
-  .badge-published {
-    @apply bg-brand-soft text-brand-strong;
-  }
+  /* el peso visual de los tres badges sigue que tan expuesto esta el proyecto:
+     fantasma para el borrador, contorno para el no listado, solido para el
+     publicado. Asi el estado mas importante es tambien el que mas resalta */
 
   .badge-draft {
     @apply bg-surface text-ink-muted ring-1 ring-border ring-inset;
   }
 
-  /* `unlisted` es un estado normal, no una advertencia: solido y neutro para
-     que se distinga del borrador sin leerse como alerta */
   .badge-unlisted {
-    @apply bg-ink text-paper;
+    @apply bg-paper text-ink ring-1 ring-ink/30 ring-inset;
+  }
+
+  .badge-published {
+    @apply bg-brand text-paper;
   }
 
   .empty-state {
@@ -162,7 +164,7 @@
   }
 
   .btn-link {
-    @apply text-sm font-medium text-ink-muted underline-offset-4 transition hover:text-ink hover:underline;
+    @apply text-sm font-medium text-ink-muted underline-offset-4 transition hover:text-brand hover:underline;
   }
 
   /* espeja la variante `primary` de Button, que ahora lleva el azul de marca */

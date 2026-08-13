@@ -14,8 +14,10 @@ const VARIANTS: Record<ButtonVariant, string> = {
   //la accion principal del producto lleva el color del producto
   primary: "bg-brand text-paper hover:bg-brand-strong",
   secondary: "border border-border bg-paper text-ink hover:bg-surface",
-  //el rojo aqui es semantico, no de marca
-  danger: "border border-danger bg-paper text-danger hover:bg-danger/5",
+  //el rojo aqui es semantico, no de marca. Discreto en reposo para no gritar
+  //desde cada fila de la tabla, y explicito al pasar el mouse
+  danger:
+    "border border-danger/25 bg-paper text-danger hover:border-danger hover:bg-danger/5",
 };
 
 export default function Button({
