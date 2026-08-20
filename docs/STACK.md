@@ -1,6 +1,6 @@
 # MITZURI - Stack real del proyecto
 
-Documento basado en inspeccion real del repo el `2026-05-28`.
+Documento basado en inspeccion real del repo el `2026-08-19`.
 
 ## Vista general
 
@@ -66,6 +66,11 @@ Storage:
 
 - `@aws-sdk/client-s3 3.1035.0`
 - cliente S3 configurado para `Cloudflare R2`
+- `multer 2.2.0` para recibir `multipart/form-data`, con `memoryStorage`: el
+  archivo va del buffer directo a R2 y nunca toca disco
+- `image-size 2.0.2` para leer ancho y alto del buffer; JavaScript puro, sin
+  binarios nativos
+- el bucket se sirve por dominio propio, declarado en `R2_PUBLIC_BASE_URL`
 
 Entorno:
 
@@ -104,10 +109,17 @@ Lint y tipos:
 
 Estilos:
 
-- CSS plano en `src/index.css` y `src/App.css`
-- sin Tailwind por ahora
-- sin CSS Modules
-- sin libreria UI
+- `Tailwind CSS 4.3.0` con `@tailwindcss/vite`
+- tokens de color y tipografia en el bloque `@theme` de `src/index.css`;
+  **no se usan colores literales de Tailwind en ningun lado**
+- capa de componentes en `src/styles/components.css`
+- `cn` en `src/lib/cn.ts` solo concatena, no resuelve conflictos de Tailwind
+- sin CSS Modules, sin libreria UI
+
+Tipografias, self-hosted:
+
+- `@fontsource/yeseva-one 5.3.0` — display, un solo peso, solo sitio publico
+- `@fontsource/be-vietnam-pro 5.3.0` — texto, pesos 400, 500 y 700
 
 ### Base de datos
 

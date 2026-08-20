@@ -25,6 +25,10 @@ Con eso, Fase 2 queda cerrada. Lo siguiente es el sistema visual y despues media
 - fuentes self-hosted con `@fontsource`; la display solo se importa en `PublicLayout`, el admin va todo en Be Vietnam Pro
 - se eliminaron los colores literales de Tailwind del codigo, salvo en `FeedLabPage`, que es maqueta desechable
 - el boton primario pasa de negro a azul de marca
+- modulo `media` en backend: `POST /admin/media` recibe el archivo, lo sube a R2 y registra el asset
+- `apiClient` ya sabe mandar `FormData`: cuando el cuerpo es multipart no fija el `Content-Type`, para que el navegador escriba el `boundary`
+- `errorMiddleware` traduce los errores de multer a `ValidationError`, asi que un archivo demasiado grande responde `400` y no `500`
+- componente `ImageUpload`: la portada se sube desde el formulario, ya no se pega una URL a mano
 
 ## Cambios del snapshot `2026-08-09`
 
@@ -175,8 +179,15 @@ Pendiente de verificar manualmente en navegador: alta, edicion, publicar/despubl
 4. ~~creacion y edicion base~~ hecho
 5. ~~estados de publicacion~~ hecho
 6. ~~sistema visual: tokens de color y tipografia~~ hecho
-7. contenido del proyecto: media, empezando por la portada
-8. secciones
-9. rutas publicas de proyectos
+7. ~~subida de portada~~ hecho
+8. sitio publico minimo: feed y pagina de proyecto
+9. secciones
+10. resto de media y preview
+
+Nota de prioridad: hoy `published` y `unlisted` son estados que no producen
+ningun efecto observable, porque no existe sitio publico. Compartir un proyecto
+por URL, que era la razon de ser de `unlisted`, todavia no funciona. Por eso el
+siguiente corte deberia ser publico, aunque sea minimo, antes de abrir
+secciones.
 
 El proximo corte es de backend nuevo, no de UI. Un proyecto hoy solo tiene metadatos; para que valga la pena publicarlo necesita cuerpo. Las dos opciones son el modulo `media` (Fase 4, ya hay tabla y cliente R2) o el modulo `sections` (Fase 5, ya hay tabla). Conviene `media` primero, porque las secciones de imagen dependen de tener assets.
