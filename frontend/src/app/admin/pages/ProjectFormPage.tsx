@@ -7,10 +7,17 @@ import {
 } from "../../../services/projects.service";
 import { updateMediaAlt } from "../../../services/media.service";
 import type { CoverAsset } from "../../../types/media";
-import type { Project, ProjectInput } from "../../../types/project";
+import type {
+  Project,
+  ProjectCategory,
+  ProjectInput,
+} from "../../../types/project";
+import { CATEGORY_LABELS } from "../../../types/project";
+import { CONTRAST_AA, contrastRatio } from "../../../lib/contrast";
 import Button from "../../../components/ui/Button";
 import ImageUpload from "../../../components/ui/ImageUpload";
 import Input from "../../../components/ui/Input";
+import Select from "../../../components/ui/Select";
 import Textarea from "../../../components/ui/Textarea";
 
 type FormValues = {
@@ -19,6 +26,12 @@ type FormValues = {
   year: string;
   client: string;
   sort_order: string;
+  category: string;
+  //una sola cadena separada por comas: se parte al guardar y se vuelve a unir
+  //al cargar. Escribir una lista es mas rapido que administrar etiquetas
+  tools: string;
+  accent_color: string;
+  credits: string;
 };
 
 const EMPTY_FORM: FormValues = {
@@ -27,6 +40,27 @@ const EMPTY_FORM: FormValues = {
   year: String(new Date().getFullYear()),
   client: "",
   sort_order: "0",
+  category: "",
+  tools: "",
+  accent_color: "",
+  credits: "",
+};
+
+const CATEGORY_OPTIONS = Object.entries(CATEGORY_LABELS) as Array<
+  [ProjectCategory, string]
+>;
+
+const HEX_PATTERN = /^#[0-9A-Fa-f]{6}$/;
+
+//el `<input type="color">` siempre necesita un valor valido; sin acento elegido
+//muestra el azul del sitio, que es justo lo que la pagina publica usaria
+const FALLBACK_ACCENT = "#0d30f2";
+
+const parseTools = (value: string): string[] => {
+  return value
+    .split(",")
+    .map((tool) => tool.trim())
+    .filter(Boolean);
 };
 
 //los opcionales se mandan siempre, incluso vacios: asi se pueden limpiar. La
@@ -41,6 +75,10 @@ const buildPayload = (
   client: values.client.trim(),
   cover_media_id: coverMediaId,
   sort_order: Number(values.sort_order || 0),
+  category: (values.category || null) as ProjectCategory | null,
+  tools: parseTools(values.tools),
+  accent_color: values.accent_color.trim() || null,
+  credits: values.credits.trim() || null,
 });
 
 export default function ProjectFormPage() {
@@ -79,6 +117,10 @@ export default function ProjectFormPage() {
           year: String(project.year),
           client: project.client ?? "",
           sort_order: String(project.sort_order),
+          category: project.category ?? "",
+          tools: project.tools.join(", "),
+          accent_color: project.accent_color ?? "",
+          credits: project.credits ?? "",
         });
       } catch (err) {
         if (cancelled) return;
@@ -97,10 +139,21 @@ export default function ProjectFormPage() {
   }, [id]);
 
   const setField = (field: keyof FormValues) => {
-    return (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    return (
+      e: React.ChangeEvent<
+        HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+      >
+    ) => {
       setValues((prev) => ({ ...prev, [field]: e.target.value }));
     };
   };
+
+  const accent = values.accent_color.trim();
+  const accentIsHex = HEX_PATTERN.test(accent);
+  const accentRatio = accentIsHex ? contrastRatio(accent, "#ffffff") : null;
+  //avisa, no bloquea: la decision es de ella, pero merece saber que ese color
+  //casi no se lee sobre el blanco del sitio
+  const accentIsHardToRead = accentRatio !== null && accentRatio < CONTRAST_AA;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -111,6 +164,13 @@ export default function ProjectFormPage() {
     //usa lector de pantalla, asi que el formulario no deja guardarla asi
     if (cover && !alt) {
       setError("El texto alternativo de la portada es obligatorio.");
+      return;
+    }
+
+    //el contraste solo avisa, pero un hex mal escrito si es un error: el
+    //backend lo rechazaria con un 400 mucho menos claro
+    if (accent && !accentIsHex) {
+      setError("El color de acento debe ser un hex de seis digitos, como #0d30f2.");
       return;
     }
 
@@ -251,6 +311,106 @@ export default function ProjectFormPage() {
           />
           <p className="field-hint">Numero mas chico aparece primero.</p>
         </div>
+
+        <fieldset className="form-fieldset">
+          <legend className="form-legend">Ficha del proyecto</legend>
+
+          <div className="form-field">
+            <label className="form-label" htmlFor="category">
+              Categoria
+            </label>
+            <Select
+              id="category"
+              value={values.category}
+              required
+              onChange={setField("category")}
+            >
+              <option value="" disabled>
+                Elige una categoria
+              </option>
+              {CATEGORY_OPTIONS.map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </Select>
+          </div>
+
+          <div className="form-field">
+            <label className="form-label" htmlFor="tools">
+              Herramientas
+            </label>
+            <Input
+              id="tools"
+              value={values.tools}
+              onChange={setField("tools")}
+            />
+            <p className="field-hint">
+              Separalas con comas. Las mas frecuentes: Photoshop, Illustrator,
+              InDesign.
+            </p>
+          </div>
+
+          <div className="form-field">
+            <label className="form-label" htmlFor="accent_color_hex">
+              Color de acento
+            </label>
+
+            <div className="color-field">
+              {/* los dos controles editan el mismo valor: el selector es para
+                  elegir a ojo y el texto para pegar un hex exacto */}
+              <input
+                type="color"
+                aria-label="Elegir color de acento"
+                className="color-swatch"
+                value={accentIsHex ? accent : FALLBACK_ACCENT}
+                onChange={setField("accent_color")}
+              />
+              <Input
+                id="accent_color_hex"
+                value={values.accent_color}
+                placeholder={FALLBACK_ACCENT}
+                onChange={setField("accent_color")}
+              />
+              {accent && (
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() =>
+                    setValues((prev) => ({ ...prev, accent_color: "" }))
+                  }
+                >
+                  Quitar
+                </Button>
+              )}
+            </div>
+
+            <p className="field-hint">
+              Tine la pagina del proyecto. Sin color se usa el azul del sitio.
+            </p>
+
+            {accentIsHardToRead && (
+              <p className="field-warning">
+                Este color se lee con dificultad sobre blanco (contraste{" "}
+                {accentRatio?.toFixed(1)}:1). Uno mas oscuro se leeria mejor,
+                pero puedes guardarlo igual.
+              </p>
+            )}
+          </div>
+
+          <div className="form-field">
+            <label className="form-label" htmlFor="credits">
+              Si fue un proyecto colaborativo, describe tu parte
+            </label>
+            <Textarea
+              id="credits"
+              rows={3}
+              value={values.credits}
+              onChange={setField("credits")}
+            />
+            <p className="field-hint">Se muestra tal cual en la pagina publica.</p>
+          </div>
+        </fieldset>
 
         <ImageUpload
           label="Imagen de portada"

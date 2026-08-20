@@ -32,8 +32,11 @@ export const getAllProjects = async () => {
 export const createProject = async (data) => {
 
   const { rows } = await pool.query(`
-        INSERT INTO projects (title, slug, description, year, client, cover_media_id, sort_order)
-        VALUES ($1, $2, $3, $4, $5, $6, $7)
+        INSERT INTO projects (
+            title, slug, description, year, client, cover_media_id, sort_order,
+            category, tools, accent_color, credits
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
         RETURNING id;
     `, [
     data.title,
@@ -42,7 +45,12 @@ export const createProject = async (data) => {
     data.year,
     data.client || null,
     data.cover_media_id ?? null,
-    data.sort_order ?? 0
+    data.sort_order ?? 0,
+    data.category ?? null,
+    //`pg` manda el array de JavaScript como `TEXT[]` sin conversion manual
+    data.tools ?? [],
+    data.accent_color ?? null,
+    data.credits ?? null
   ]);
 
   //se relee para devolver la portada ya resuelta: `RETURNING` no sabe hacer el join
@@ -86,8 +94,12 @@ export const updateProject = async (id, data) => {
             client = $5,
             cover_media_id = $6,
             sort_order = $7,
+            category = $8,
+            tools = $9,
+            accent_color = $10,
+            credits = $11,
             updated_at = NOW()
-        WHERE id = $8
+        WHERE id = $12
         RETURNING id;
     `, [
     data.title,
@@ -97,6 +109,10 @@ export const updateProject = async (id, data) => {
     data.client || null,
     data.cover_media_id ?? null,
     data.sort_order ?? 0,
+    data.category ?? null,
+    data.tools ?? [],
+    data.accent_color ?? null,
+    data.credits ?? null,
     id
   ]);
 
@@ -176,7 +192,8 @@ export const unpublishProject = async (id) => {
 //columnas explicitas y nunca `SELECT *`: estos endpoints no piden token, asi
 //que no deben filtrar columnas internas como `status` o `slug_locked`
 const PUBLIC_COLUMNS = `
-    p.id, p.title, p.slug, p.description, p.year, p.client, p.published_at
+    p.id, p.title, p.slug, p.description, p.year, p.client, p.published_at,
+    p.category, p.tools, p.accent_color, p.credits
 `;
 
 export const getPublishedProjects = async () => {

@@ -68,6 +68,13 @@ export const updateProject = async (id, data) => {
     cover_media_id:
       "cover_media_id" in data ? data.cover_media_id : existing.cover_media_id,
     sort_order: data.sort_order ?? existing.sort_order,
+    //igual que la portada: `null` significa vaciar el campo, no ausencia, asi
+    //que solo se conserva lo existente cuando la clave ni siquiera viene
+    category: "category" in data ? data.category : existing.category,
+    tools: data.tools ?? existing.tools,
+    accent_color:
+      "accent_color" in data ? data.accent_color : existing.accent_color,
+    credits: "credits" in data ? data.credits : existing.credits,
   };
 
   return await projectsRepository.updateProject(id, updateData);
