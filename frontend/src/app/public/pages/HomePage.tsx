@@ -3,6 +3,7 @@ import type { CSSProperties } from "react";
 import { Link } from "react-router-dom";
 import { getPublicProjects } from "../../../services/projects.public.service";
 import type { PublicProject } from "../../../types/project";
+import { CATEGORY_LABELS } from "../../../types/project";
 import Cover from "../../../components/ui/Cover";
 
 type LoadState = "loading" | "ready" | "error";
@@ -95,6 +96,12 @@ export default function HomePage() {
           <article>
             <Link to={`/proyectos/${featured.slug}`} className="feed-card group">
               <Cover cover={featured.cover} />
+              {/* contexto, no filtro: no es un enlace ni abre nada */}
+              {featured.category && (
+                <p className="feed-category">
+                  {CATEGORY_LABELS[featured.category]}
+                </p>
+              )}
               <h1 className="feed-hero-title">{featured.title}</h1>
               <p className="feed-meta">{formatMeta(featured)}</p>
             </Link>
@@ -122,6 +129,11 @@ export default function HomePage() {
                         className="feed-card group"
                       >
                         <Cover cover={project.cover} />
+                        {project.category && (
+                          <p className="feed-category">
+                            {CATEGORY_LABELS[project.category]}
+                          </p>
+                        )}
                         <h2 className="feed-card-title">{project.title}</h2>
                         <p className="feed-meta">{formatMeta(project)}</p>
                       </Link>

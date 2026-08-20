@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
+import type { CSSProperties } from "react";
 import { Link, useParams } from "react-router-dom";
 import { getPublicProject } from "../../../services/projects.public.service";
 import type { PublicProjectDetail } from "../../../types/project";
+import { CATEGORY_LABELS } from "../../../types/project";
 import { ApiError } from "../../../services/apiClient";
 import Cover from "../../../components/ui/Cover";
 
@@ -77,7 +79,17 @@ export default function ProjectPage() {
   const meta = [project.client, project.year].filter(Boolean).join(" · ");
 
   return (
-    <article className="project-page">
+    //los tokens de Tailwind 4 son variables CSS: redefinir `--color-brand` aqui
+    //tine todo lo que use `brand` dentro de la pagina, sin duplicar una clase.
+    //Sin acento se queda el azul del sitio
+    <article
+      className="project-page"
+      style={
+        project.accent_color
+          ? ({ "--color-brand": project.accent_color } as CSSProperties)
+          : undefined
+      }
+    >
       <title>{`${project.title} · Mitzuri`}</title>
       <meta name="description" content={project.description} />
 
@@ -89,6 +101,23 @@ export default function ProjectPage() {
 
       <h1 className="project-title">{project.title}</h1>
       <p className="project-meta">{meta}</p>
+
+      {/* datos de apoyo: van pegados a la linea de metadatos para no empujar la
+          portada fuera de la primera pantalla */}
+      {project.category && (
+        <p className="project-category">{CATEGORY_LABELS[project.category]}</p>
+      )}
+
+      {project.tools.length > 0 && (
+        <p className="project-tools">{project.tools.join(" · ")}</p>
+      )}
+
+      {project.credits && (
+        <p className="project-credits">
+          <span className="project-credits-label">Proyecto colaborativo</span>
+          {project.credits}
+        </p>
+      )}
 
       {/* la portada se ve entera, a su proporcion real; el tope de alto evita
           que una pieza muy vertical se coma tres pantallas */}

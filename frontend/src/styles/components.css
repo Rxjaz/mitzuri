@@ -163,6 +163,31 @@
     @apply text-sm text-ink-muted;
   }
 
+  /* el aviso de contraste no bloquea nada: por eso no usa el rojo de error */
+  .field-warning {
+    @apply mt-2 rounded-xl border border-border bg-surface px-4 py-3 text-sm text-ink-muted;
+  }
+
+  /* agrupa la ficha sin dibujar la caja que el navegador pone por defecto */
+  .form-fieldset {
+    @apply m-0 mt-8 mb-4 border-0 border-t border-border p-0 pt-6;
+  }
+
+  .form-legend {
+    @apply mb-4 p-0 text-sm font-medium tracking-wide text-ink-muted uppercase;
+  }
+
+  /* el selector de color y el hex son un solo campo repartido en dos controles */
+  .color-field {
+    @apply flex items-center gap-3;
+  }
+
+  /* el nativo trae su propio borde y relleno: se los quitamos para que se vea
+     como una muestra de color y no como un boton del sistema */
+  .color-swatch {
+    @apply h-12 w-14 shrink-0 cursor-pointer rounded-xl border border-border bg-paper p-1;
+  }
+
   .upload-dropzone {
     @apply rounded-xl border border-dashed border-border bg-surface px-6 py-8 text-center;
   }
@@ -287,6 +312,17 @@
     @apply mt-2 text-sm text-ink-muted;
   }
 
+  /* la categoria es contexto, no jerarquia: chica, en sans y sin peso extra */
+  .feed-category {
+    @apply mt-6 font-sans text-xs tracking-widest text-ink-muted uppercase;
+  }
+
+  /* con categoria delante, el titulo ya no necesita abrir el aire: lo abrio ella */
+  .feed-category + .feed-hero-title,
+  .feed-category + .feed-card-title {
+    @apply mt-2;
+  }
+
   .project-page {
     @apply mx-auto max-w-3xl;
   }
@@ -297,6 +333,24 @@
 
   .project-meta {
     @apply mt-4 text-sm tracking-wide text-ink-muted;
+  }
+
+  /* apoyo del titulo, no contenido: se apila junto a la linea de metadatos y
+     deja la portada dentro de la primera pantalla */
+  .project-category {
+    @apply mt-4 font-sans text-xs tracking-widest text-ink-muted uppercase;
+  }
+
+  .project-tools {
+    @apply mt-2 font-sans text-sm text-ink-muted;
+  }
+
+  .project-credits {
+    @apply mt-4 max-w-prose font-sans text-sm leading-6 text-ink-muted;
+  }
+
+  .project-credits-label {
+    @apply block text-xs tracking-widest uppercase;
   }
 
   .project-cover {
