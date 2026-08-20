@@ -71,3 +71,23 @@ export const unpublish = async (req, res, next) => {
     next(error);
   }
 };
+
+export const getPublicAll = async (req, res, next) => {
+  try {
+    const projects = await projectsService.getPublishedProjects();
+    res.json(projects);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getPublicBySlug = async (req, res, next) => {
+  try {
+    const project = await projectsService.getPublicProjectBySlug(
+      req.params.slug
+    );
+    res.json(project);
+  } catch (error) {
+    next(error);
+  }
+};

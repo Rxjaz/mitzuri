@@ -13,8 +13,8 @@ export const getAllProjects = async () => {
 export const createProject = async (data) => {
 
   const { rows } = await pool.query(`
-        INSERT INTO projects (title, slug, description, year, client, cover_image_url)
-        VALUES ($1, $2, $3, $4, $5, $6)
+        INSERT INTO projects (title, slug, description, year, client, cover_image_url, sort_order)
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
         RETURNING *;
     `, [
     data.title,
@@ -22,7 +22,8 @@ export const createProject = async (data) => {
     data.description,
     data.year,
     data.client || null,
-    data.cover_image_url || null
+    data.cover_image_url || null,
+    data.sort_order ?? 0
   ]);
 
   return rows[0];
@@ -62,8 +63,9 @@ export const updateProject = async (id, data) => {
             year = $4,
             client = $5,
             cover_image_url = $6,
+            sort_order = $7,
             updated_at = NOW()
-        WHERE id = $7
+        WHERE id = $8
         RETURNING *;
     `, [
     data.title,
@@ -72,6 +74,7 @@ export const updateProject = async (id, data) => {
     data.year,
     data.client || null,
     data.cover_image_url || null,
+    data.sort_order ?? 0,
     id
   ]);
 
@@ -133,6 +136,38 @@ export const unpublishProject = async (id) => {
         WHERE id = $1
         RETURNING *;
     `, [id]);
+
+  return rows[0];
+};
+
+//columnas explicitas y nunca `SELECT *`: estos endpoints no piden token, asi
+//que no deben filtrar columnas internas como `status` o `slug_locked`
+const PUBLIC_COLUMNS = `
+    id, title, slug, description, cover_image_url, year, client, published_at
+`;
+
+export const getPublishedProjects = async () => {
+
+  const { rows } = await pool.query(`
+        SELECT ${PUBLIC_COLUMNS}
+        FROM projects
+        WHERE status = 'published'
+        ORDER BY sort_order ASC, published_at DESC NULLS LAST, created_at DESC;
+    `);
+
+  return rows;
+};
+
+//`status` si viaja aqui, porque la pagina lo necesita para decidir el noindex
+//de un no listado. Un borrador nunca sale por esta puerta
+export const getPublicProjectBySlug = async (slug) => {
+
+  const { rows } = await pool.query(`
+        SELECT ${PUBLIC_COLUMNS}, status
+        FROM projects
+        WHERE slug = $1 AND status IN ('published', 'unlisted')
+        LIMIT 1;
+    `, [slug]);
 
   return rows[0];
 };

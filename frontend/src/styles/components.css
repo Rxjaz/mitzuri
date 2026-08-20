@@ -187,4 +187,88 @@
   .btn-primary-link {
     @apply inline-flex shrink-0 items-center justify-center rounded-xl bg-brand px-4 py-3 text-sm font-medium text-paper transition hover:bg-brand-strong;
   }
+
+  /* ---- sitio publico ---- */
+
+  .site-footer {
+    @apply mt-24 border-t border-border;
+  }
+
+  .site-footer-inner {
+    @apply mx-auto flex max-w-6xl flex-col gap-1 px-6 py-10 text-sm text-ink-muted;
+  }
+
+  .feed {
+    @apply flex flex-col gap-16;
+  }
+
+  .feed-grid {
+    @apply grid gap-x-8 gap-y-12 sm:grid-cols-2;
+  }
+
+  /* `group` no se puede @apply en Tailwind 4: va en el marcado del enlace */
+  .feed-card {
+    @apply block;
+  }
+
+  /* el alto se reserva con aspect-ratio porque la portada es una URL suelta y
+     no sabemos sus proporciones: sin esto el layout salta al cargar */
+  .cover-frame {
+    @apply w-full overflow-hidden rounded-2xl border border-border bg-surface;
+  }
+
+  .cover-frame-hero {
+    @apply aspect-[16/9];
+  }
+
+  .cover-frame-card {
+    @apply aspect-[4/3];
+  }
+
+  .cover-image {
+    @apply h-full w-full object-cover transition duration-500 group-hover:scale-[1.02];
+  }
+
+  /* un proyecto sin portada no se ve roto: el marco se sostiene solo */
+  .cover-empty {
+    @apply flex h-full w-full items-center justify-center text-xs tracking-widest text-ink-muted uppercase;
+  }
+
+  /* Yeseva no tiene bold ni italica: la jerarquia sale del tamano y el aire */
+  .feed-hero-title {
+    @apply mt-6 font-display text-display-lg text-ink;
+  }
+
+  .feed-card-title {
+    @apply mt-4 text-xl font-medium tracking-tight text-ink;
+  }
+
+  .feed-meta {
+    @apply mt-2 text-sm text-ink-muted;
+  }
+
+  .project-page {
+    @apply mx-auto max-w-3xl;
+  }
+
+  .project-title {
+    @apply font-display text-display-lg text-ink;
+  }
+
+  .project-meta {
+    @apply mt-4 text-sm tracking-wide text-ink-muted;
+  }
+
+  .project-cover {
+    @apply mt-10;
+  }
+
+  /* ancho de lectura comodo: ~65 caracteres por linea */
+  .project-description {
+    @apply mt-10 max-w-prose text-base leading-7 whitespace-pre-line text-ink;
+  }
+
+  .project-back {
+    @apply mt-16 inline-block text-sm text-ink-muted underline-offset-4 transition hover:text-brand hover:underline;
+  }
 }

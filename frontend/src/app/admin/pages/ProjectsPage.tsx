@@ -155,6 +155,7 @@ export default function ProjectsPage() {
               <tr>
                 <th>Titulo</th>
                 <th>Estado</th>
+                <th>Orden</th>
                 <th>Año</th>
                 <th>Cliente</th>
                 <th>Creado</th>
@@ -173,6 +174,7 @@ export default function ProjectsPage() {
                       {STATUS_LABELS[project.status]}
                     </span>
                   </td>
+                  <td>{project.sort_order}</td>
                   <td>{project.year}</td>
                   <td>{project.client || "—"}</td>
                   <td>{formatDate(project.created_at)}</td>
