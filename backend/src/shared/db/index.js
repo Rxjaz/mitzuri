@@ -6,12 +6,6 @@ const shouldUseSsl =
   process.env.NODE_ENV === "production" || process.env.DB_SSL === "true";
 
 const connectionString = process.env.DATABASE_URL;
-const hasDiscreteDbConfig = Boolean(
-  process.env.DB_HOST &&
-    process.env.DB_USER &&
-    process.env.DB_PASSWORD &&
-    process.env.DB_NAME
-);
 const usingConnectionString = Boolean(connectionString);
 
 const poolConfig =
@@ -49,11 +43,3 @@ export const testDBConnection = async () => {
 export const closePool = async () => {
   await pool.end();
 };
-
-console.log({
-  dbConfigMode: usingConnectionString ? "DATABASE_URL" : "discrete",
-  hasDiscreteDbConfig,
-  DB_HOST: process.env.DB_HOST,
-  DATABASE_URL: process.env.DATABASE_URL ? "exists" : "missing",
-  DB_SSL: process.env.DB_SSL
-});

@@ -9,6 +9,7 @@ import {
   sectionsRouter,
 } from "./modules/sections/sections.routes.js";
 
+import { pool } from "./shared/db/index.js";
 import errorMiddleware from "./shared/middleware/error.middleware.js";
 import { authMiddleware } from "./shared/middleware/auth.middleware.js";
 
@@ -20,12 +21,26 @@ app.get("/", (req, res) => {
   res.send("API Running");
 });
 
+const allowedOrigins = (process.env.FRONTEND_URL || "")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL,
+    origin: allowedOrigins,
     credentials: true,
   })
 );
+
+app.get("/health", async (req, res) => {
+  try {
+    await pool.query("SELECT 1");
+    res.json({ status: "ok", database: "ok" });
+  } catch {
+    res.status(503).json({ status: "error", database: "error" });
+  }
+});
 
 app.use("/auth", authRoutes);
 
