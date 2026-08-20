@@ -29,6 +29,15 @@ Con eso, Fase 2 queda cerrada. Lo siguiente es el sistema visual y despues media
 - `apiClient` ya sabe mandar `FormData`: cuando el cuerpo es multipart no fija el `Content-Type`, para que el navegador escriba el `boundary`
 - `errorMiddleware` traduce los errores de multer a `ValidationError`, asi que un archivo demasiado grande responde `400` y no `500`
 - componente `ImageUpload`: la portada se sube desde el formulario, ya no se pega una URL a mano
+- sitio publico: `GET /projects` y `GET /projects/:slug`, feed y pagina por slug
+- un proyecto `unlisted` responde por su URL pero no aparece en el feed, y lleva `noindex`
+- columna `sort_order`: el orden del portafolio es editorial, no cronologico
+- modulo `sections` con el tipo `image`: galeria por proyecto, con CRUD y reordenamiento
+- migracion `009`: el indice unico de `(project_id, position)` paso a restriccion diferible, para poder reordenar en una sola transaccion
+- migracion `010`: la portada dejo de ser una URL suelta y ahora es `cover_media_id`, con llave foranea a `media_assets`
+- con eso el proyecto conoce ancho, alto y texto alternativo de su portada: el feed se adapta a la forma de cada imagen y ya no recorta
+- feed en mosaico de dos columnas, repartidas alternando para que el orden curado se lea de izquierda a derecha; en movil colapsa a una columna con el orden exacto
+- `PUT /admin/media/:id` para corregir el texto alternativo de un asset ya subido
 
 ## Cambios del snapshot `2026-08-09`
 
@@ -180,14 +189,24 @@ Pendiente de verificar manualmente en navegador: alta, edicion, publicar/despubl
 5. ~~estados de publicacion~~ hecho
 6. ~~sistema visual: tokens de color y tipografia~~ hecho
 7. ~~subida de portada~~ hecho
-8. sitio publico minimo: feed y pagina de proyecto
-9. secciones
-10. resto de media y preview
+8. ~~sitio publico minimo: feed y pagina de proyecto~~ hecho
+9. ~~galeria de imagenes por proyecto~~ hecho
+10. ~~portada con proporcion real y feed adaptable~~ hecho
+11. metadatos del portafolio: categorias, herramientas, acento, creditos
+12. deploy
+13. contenido real cargado por la disenadora
 
-Nota de prioridad: hoy `published` y `unlisted` son estados que no producen
-ningun efecto observable, porque no existe sitio publico. Compartir un proyecto
-por URL, que era la razon de ser de `unlisted`, todavia no funciona. Por eso el
-siguiente corte deberia ser publico, aunque sea minimo, antes de abrir
-secciones.
+Nota de prioridad, `2026-08-19`: la v1 esta funcionalmente completa contra los
+criterios de [01_ALCANCE_V1.md](../producto/01_ALCANCE_V1.md), con una sola
+excepcion, la preview por token, cuyo caso de uso real ya lo cubre `unlisted`.
+
+El riesgo ya no es que falten features: es que **nadie ha usado el producto**.
+La disenadora no lo ha tocado y sus doce proyectos siguen en un PDF. Lo que
+falta antes de seguir construyendo es meter contenido real, y para eso hace
+falta que el sitio no viva solo en una laptop.
+
+Los tests siguen sin existir. Es una decision consciente mientras cada cambio
+pasa por spec y auditoria de diff; deja de serlo en cuanto haya contenido real
+que se pueda romper.
 
 El proximo corte es de backend nuevo, no de UI. Un proyecto hoy solo tiene metadatos; para que valga la pena publicarlo necesita cuerpo. Las dos opciones son el modulo `media` (Fase 4, ya hay tabla y cliente R2) o el modulo `sections` (Fase 5, ya hay tabla). Conviene `media` primero, porque las secciones de imagen dependen de tener assets.
