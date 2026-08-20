@@ -38,6 +38,11 @@ Con eso, Fase 2 queda cerrada. Lo siguiente es el sistema visual y despues media
 - con eso el proyecto conoce ancho, alto y texto alternativo de su portada: el feed se adapta a la forma de cada imagen y ya no recorta
 - feed en mosaico de dos columnas, repartidas alternando para que el orden curado se lea de izquierda a derecha; en movil colapsa a una columna con el orden exacto
 - `PUT /admin/media/:id` para corregir el texto alternativo de un asset ya subido
+- migracion `011`: metadatos del portafolio — `category`, `tools`, `accent_color` y `credits`
+- las tres categorias son las de la disenadora: `editorial`, `marca`, `ilustracion`. Se guardan sin acentos y la etiqueta legible la arma el frontend
+- `accent_color` se aplica redefiniendo `--color-brand` en la pagina del proyecto, asi que todo lo que use `brand` ahi dentro cambia solo
+- el hex se valida en Zod y ademas con un `CHECK` en la base: entra como variable CSS, y cualquier otro formato seria inyeccion en el atributo `style`
+- `lib/contrast.ts` calcula la relacion de contraste WCAG; el formulario avisa si el acento baja de 4.5:1 sobre blanco, pero no bloquea
 
 ## Cambios del snapshot `2026-08-09`
 
