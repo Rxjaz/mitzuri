@@ -63,7 +63,10 @@ export const updateProject = async (id, data) => {
     description: data.description ?? existing.description,
     year: data.year ?? existing.year,
     client: data.client ?? existing.client,
-    cover_image_url: data.cover_image_url ?? existing.cover_image_url,
+    //`??` no sirve aqui: `null` es un valor con significado —quitar la
+    //portada—, no una ausencia. Solo se conserva la actual si no viene el campo
+    cover_media_id:
+      "cover_media_id" in data ? data.cover_media_id : existing.cover_media_id,
     sort_order: data.sort_order ?? existing.sort_order,
   };
 
@@ -86,10 +89,6 @@ export const publishProject = async (id) => {
   if (!project) {
     throw new NotFoundError("Project not found");
   }
-
-  // if (!project.cover_image_url) {
-  //     throw new ValidationError('Cover image required');
-  // }
 
   return await projectsRepository.publishProject(id);
 };

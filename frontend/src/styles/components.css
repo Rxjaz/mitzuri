@@ -234,8 +234,22 @@
     @apply flex flex-col gap-16;
   }
 
-  .feed-grid {
-    @apply grid gap-x-8 gap-y-12 sm:grid-cols-2;
+  /* mosaico: el numero de columnas llega como `--feed-columns` desde React, que
+     es el mismo valor con el que reparte las fichas. En movil siempre una */
+  .feed-mosaic {
+    @apply grid grid-cols-1 gap-x-8 gap-y-12;
+  }
+
+  @variant sm {
+    .feed-mosaic {
+      grid-template-columns: repeat(var(--feed-columns, 2), minmax(0, 1fr));
+    }
+  }
+
+  /* en movil la columna desaparece como caja y sus fichas pasan a ser hijas de
+     la rejilla, donde `order` las devuelve a su orden exacto */
+  .feed-column {
+    @apply contents sm:flex sm:flex-col sm:gap-12;
   }
 
   /* `group` no se puede @apply en Tailwind 4: va en el marcado del enlace */
@@ -243,18 +257,12 @@
     @apply block;
   }
 
-  /* el alto se reserva con aspect-ratio porque la portada es una URL suelta y
-     no sabemos sus proporciones: sin esto el layout salta al cargar */
+  /* la proporcion la pone `Cover` desde el ancho y alto reales del asset, asi
+     que el marco tiene exactamente la forma de la imagen: reserva su espacio
+     antes de cargar y no recorta nada. `mx-auto` centra cuando el tope de alto
+     deja el marco mas angosto que la columna */
   .cover-frame {
-    @apply w-full overflow-hidden rounded-2xl border border-border bg-surface;
-  }
-
-  .cover-frame-hero {
-    @apply aspect-[16/9];
-  }
-
-  .cover-frame-card {
-    @apply aspect-[4/3];
+    @apply mx-auto w-full overflow-hidden rounded-2xl border border-border bg-surface;
   }
 
   .cover-image {
@@ -312,7 +320,7 @@
   /* el marco reserva el alto antes de que la imagen cargue; sin proporcion
      conocida cae a 4/3, que es lo mas comun en el material impreso */
   .project-image-frame {
-    @apply aspect-[4/3] w-full overflow-hidden rounded-2xl bg-surface;
+    @apply aspect-4/3 w-full overflow-hidden rounded-2xl bg-surface;
   }
 
   .project-image {

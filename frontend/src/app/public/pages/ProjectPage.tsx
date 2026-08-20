@@ -90,12 +90,9 @@ export default function ProjectPage() {
       <h1 className="project-title">{project.title}</h1>
       <p className="project-meta">{meta}</p>
 
-      <Cover
-        src={project.cover_image_url}
-        alt={project.title}
-        ratio="hero"
-        className="project-cover"
-      />
+      {/* la portada se ve entera, a su proporcion real; el tope de alto evita
+          que una pieza muy vertical se coma tres pantallas */}
+      <Cover cover={project.cover} maxHeightVh={85} className="project-cover" />
 
       <p className="project-description">{project.description}</p>
 

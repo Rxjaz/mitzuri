@@ -8,3 +8,15 @@ export const create = async (req, res, next) => {
     next(error);
   }
 };
+
+export const update = async (req, res, next) => {
+  try {
+    const asset = await mediaService.updateAltText(
+      req.params.id,
+      req.body.alt_text
+    );
+    res.json(asset);
+  } catch (error) {
+    next(error);
+  }
+};

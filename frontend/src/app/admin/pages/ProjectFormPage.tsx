@@ -5,6 +5,8 @@ import {
   getProject,
   updateProject,
 } from "../../../services/projects.service";
+import { updateMediaAlt } from "../../../services/media.service";
+import type { CoverAsset } from "../../../types/media";
 import type { Project, ProjectInput } from "../../../types/project";
 import Button from "../../../components/ui/Button";
 import ImageUpload from "../../../components/ui/ImageUpload";
@@ -16,7 +18,6 @@ type FormValues = {
   description: string;
   year: string;
   client: string;
-  cover_image_url: string;
   sort_order: string;
 };
 
@@ -25,17 +26,20 @@ const EMPTY_FORM: FormValues = {
   description: "",
   year: String(new Date().getFullYear()),
   client: "",
-  cover_image_url: "",
   sort_order: "0",
 };
 
-//los opcionales se mandan siempre, incluso vacios: asi se pueden limpiar
-const buildPayload = (values: FormValues): ProjectInput => ({
+//los opcionales se mandan siempre, incluso vacios: asi se pueden limpiar. La
+//portada viaja como referencia al asset, y `null` la quita
+const buildPayload = (
+  values: FormValues,
+  coverMediaId: string | null
+): ProjectInput => ({
   title: values.title.trim(),
   description: values.description.trim(),
   year: Number(values.year),
   client: values.client.trim(),
-  cover_image_url: values.cover_image_url.trim(),
+  cover_media_id: coverMediaId,
   sort_order: Number(values.sort_order || 0),
 });
 
@@ -45,6 +49,10 @@ export default function ProjectFormPage() {
   const isEdit = Boolean(id);
 
   const [values, setValues] = useState<FormValues>(EMPTY_FORM);
+  const [cover, setCover] = useState<CoverAsset | null>(null);
+  //el alt vive aparte del proyecto: pertenece al asset, y se guarda contra
+  //`PUT /admin/media/:id`
+  const [coverAlt, setCoverAlt] = useState("");
   //solo informativo: el slug no se edita, se muestra para saber la URL publica
   const [current, setCurrent] = useState<Project | null>(null);
   const [loading, setLoading] = useState(isEdit);
@@ -63,12 +71,13 @@ export default function ProjectFormPage() {
         if (cancelled) return;
 
         setCurrent(project);
+        setCover(project.cover);
+        setCoverAlt(project.cover?.alt ?? "");
         setValues({
           title: project.title,
           description: project.description,
           year: String(project.year),
           client: project.client ?? "",
-          cover_image_url: project.cover_image_url ?? "",
           sort_order: String(project.sort_order),
         });
       } catch (err) {
@@ -96,11 +105,26 @@ export default function ProjectFormPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    const alt = coverAlt.trim();
+
+    //una portada sin texto alternativo no existe para un buscador ni para quien
+    //usa lector de pantalla, asi que el formulario no deja guardarla asi
+    if (cover && !alt) {
+      setError("El texto alternativo de la portada es obligatorio.");
+      return;
+    }
+
     setError(null);
     setSaving(true);
 
     try {
-      const payload = buildPayload(values);
+      //el alt va primero: si falla, el proyecto no se guarda con una portada
+      //que en la base sigue sin describir
+      if (cover && alt !== (cover.alt ?? "")) {
+        await updateMediaAlt(cover.id, alt);
+      }
+
+      const payload = buildPayload(values, cover?.id ?? null);
 
       if (id) {
         await updateProject(id, payload);
@@ -230,13 +254,44 @@ export default function ProjectFormPage() {
 
         <ImageUpload
           label="Imagen de portada"
-          value={values.cover_image_url || null}
-          //el contrato de projects no cambia: la portada sigue viajando como
-          //string, y "" la quita
-          onChange={(url) =>
-            setValues((prev) => ({ ...prev, cover_image_url: url ?? "" }))
-          }
+          value={cover?.url ?? null}
+          onChange={(url, asset) => {
+            //quitar la portada deja el proyecto sin `cover_media_id`; subir una
+            //nueva guarda el asset entero, que es de donde salen la forma de la
+            //imagen y su texto alternativo
+            if (!url || !asset) {
+              setCover(null);
+              setCoverAlt("");
+              return;
+            }
+
+            setCover({
+              id: asset.id,
+              url: asset.original_url,
+              alt: asset.alt_text,
+              width: asset.width,
+              height: asset.height,
+            });
+            setCoverAlt(asset.alt_text ?? "");
+          }}
         />
+
+        {cover && (
+          <div className="form-field">
+            <label className="form-label" htmlFor="cover_alt">
+              Texto alternativo de la portada
+            </label>
+            <Input
+              id="cover_alt"
+              value={coverAlt}
+              required
+              onChange={(e) => setCoverAlt(e.target.value)}
+            />
+            <p className="field-hint">
+              Describe la imagen. Se guarda junto con el proyecto.
+            </p>
+          </div>
+        )}
 
         {error && <p className="form-error">{error}</p>}
 

@@ -9,10 +9,9 @@ export const createProjectSchema = z.object({
 
   client: z.string().optional(),
 
-  //"" es valido y significa quitar la portada; cualquier otra cosa debe ser URL
-  cover_image_url: z
-    .union([z.url("Cover image must be a valid URL"), z.literal("")])
-    .optional(),
+  //la portada es una referencia al asset, no una URL suelta: asi el proyecto
+  //recupera ancho, alto y texto alternativo. `null` la quita
+  cover_media_id: z.uuid().nullable().optional(),
 
   //orden editorial del feed: numero mas chico aparece primero
   sort_order: z.coerce.number().int().optional()

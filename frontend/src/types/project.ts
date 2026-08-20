@@ -1,3 +1,4 @@
+import type { CoverAsset } from "./media";
 import type { Section } from "./section";
 
 export type ProjectStatus = "draft" | "unlisted" | "published";
@@ -7,7 +8,7 @@ export type Project = {
   title: string;
   slug: string;
   description: string;
-  cover_image_url: string | null;
+  cover: CoverAsset | null;
   status: ProjectStatus;
   //una vez que el proyecto sale de borrador el slug queda fijo para siempre
   slug_locked: boolean;
@@ -27,8 +28,9 @@ export type ProjectInput = {
   description: string;
   year: number;
   client?: string;
-  //"" limpia la portada
-  cover_image_url?: string;
+  //`null` quita la portada. Ya no viaja una URL: la portada es una referencia
+  //al asset, y de ahi salen su ancho, su alto y su texto alternativo
+  cover_media_id?: string | null;
   sort_order?: number;
 };
 
@@ -39,7 +41,7 @@ export type PublicProject = {
   title: string;
   slug: string;
   description: string;
-  cover_image_url: string | null;
+  cover: CoverAsset | null;
   year: number;
   client: string | null;
   published_at: string | null;

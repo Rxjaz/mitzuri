@@ -17,3 +17,13 @@ export const uploadMedia = (
 
   return apiClient.upload<MediaAsset>(BASE_PATH, formData);
 };
+
+//el texto alternativo se corrige cuando ya se ve la imagen, no al subirla
+export const updateMediaAlt = (
+  id: string,
+  altText: string
+): Promise<MediaAsset> => {
+  return apiClient.put<MediaAsset>(`${BASE_PATH}/${id}`, {
+    alt_text: altText,
+  });
+};
