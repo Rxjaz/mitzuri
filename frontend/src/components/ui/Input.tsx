@@ -1,7 +1,10 @@
-import type { InputHTMLAttributes } from "react";
+import type { ComponentProps } from "react";
 import { cn } from "../../lib/cn";
 
-type InputProps = InputHTMLAttributes<HTMLInputElement>;
+//`ComponentProps` en vez de `InputHTMLAttributes` porque incluye `ref`: en
+//React 19 la ref es una prop normal y la galeria la necesita para enfocar el
+//campo de texto alternativo de la imagen recien subida
+type InputProps = ComponentProps<"input">;
 
 export default function Input({ className, ...props }: InputProps) {
   return (

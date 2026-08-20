@@ -99,7 +99,43 @@ export default function ProjectPage() {
 
       <p className="project-description">{project.description}</p>
 
-      {/* aqui se montan las secciones cuando existan */}
+      {project.sections.length > 0 && (
+        <div className="project-gallery">
+          {project.sections.map((section, index) => (
+            <figure key={section.id} className="project-figure">
+              <div
+                className="project-image-frame"
+                //el espacio se reserva con la proporcion real de la imagen: sin
+                //esto el texto de abajo salta cuando cada una termina de cargar
+                style={
+                  section.content.width && section.content.height
+                    ? {
+                        aspectRatio: `${section.content.width} / ${section.content.height}`,
+                      }
+                    : undefined
+                }
+              >
+                <img
+                  src={section.content.url}
+                  alt={section.content.alt}
+                  className="project-image"
+                  width={section.content.width ?? undefined}
+                  height={section.content.height ?? undefined}
+                  //la primera entra en pantalla de inmediato; diferirla solo
+                  //retrasa lo que ya se esta viendo
+                  loading={index === 0 ? "eager" : "lazy"}
+                />
+              </div>
+
+              {section.content.caption && (
+                <figcaption className="project-caption">
+                  {section.content.caption}
+                </figcaption>
+              )}
+            </figure>
+          ))}
+        </div>
+      )}
 
       <Link to="/" className="project-back">
         ← Volver al portafolio

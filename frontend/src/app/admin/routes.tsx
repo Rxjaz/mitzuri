@@ -3,6 +3,7 @@ import LoginPage from "./pages/LoginPage";
 import DashboardPage from "./pages/DashboardPage";
 import ProjectsPage from "./pages/ProjectsPage";
 import ProjectFormPage from "./pages/ProjectFormPage";
+import ProjectImagesPage from "./pages/ProjectImagesPage";
 import AdminLayout from "./layout/AdminLayout";
 import ProtectedRoute from "./auth/ProtectedRoute";
 import GuestRoute from "./auth/GuestRoute";
@@ -20,6 +21,10 @@ export function AdminRoutes() {
           <Route path="projects" element={<ProjectsPage />} />
           <Route path="projects/new" element={<ProjectFormPage />} />
           <Route path="projects/:id/edit" element={<ProjectFormPage />} />
+          <Route
+            path="projects/:id/imagenes"
+            element={<ProjectImagesPage />}
+          />
         </Route>
       </Route>
     </>

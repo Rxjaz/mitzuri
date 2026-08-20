@@ -1,11 +1,21 @@
 import { useRef, useState } from "react";
 import { uploadMedia } from "../../services/media.service";
+import type { MediaAsset } from "../../types/media";
 import Button from "./Button";
 
 type ImageUploadProps = {
   value: string | null;
-  onChange: (url: string | null) => void;
+  //el asset y el archivo viajan como extras para quien necesite mas que la
+  //URL —la galeria usa las dimensiones y el nombre del archivo—; quien solo
+  //quiere la portada los ignora
+  onChange: (
+    url: string | null,
+    asset?: MediaAsset,
+    file?: File
+  ) => void;
   label?: string;
+  //texto del boton cuando no hay imagen todavia
+  actionLabel?: string;
 };
 
 const ACCEPTED = "image/jpeg,image/png,image/webp,image/avif";
@@ -14,6 +24,7 @@ export default function ImageUpload({
   value,
   onChange,
   label,
+  actionLabel = "Elegir imagen",
 }: ImageUploadProps) {
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -31,7 +42,7 @@ export default function ImageUpload({
     try {
       const asset = await uploadMedia(file);
 
-      onChange(asset.original_url);
+      onChange(asset.original_url, asset, file);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error inesperado");
     } finally {
@@ -79,7 +90,7 @@ export default function ImageUpload({
             disabled={uploading}
             onClick={() => inputRef.current?.click()}
           >
-            {uploading ? "Subiendo..." : "Elegir imagen"}
+            {uploading ? "Subiendo..." : actionLabel}
           </Button>
 
           <p className="field-hint mt-3">

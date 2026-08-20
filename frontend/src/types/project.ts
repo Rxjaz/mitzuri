@@ -1,3 +1,5 @@
+import type { Section } from "./section";
+
 export type ProjectStatus = "draft" | "unlisted" | "published";
 
 export type Project = {
@@ -47,4 +49,7 @@ export type PublicProject = {
 //proyecto es no listado
 export type PublicProjectDetail = PublicProject & {
   status: "published" | "unlisted";
+  //la galeria viaja con el proyecto: una sola peticion arma la pagina. El feed
+  //no las trae
+  sections: Section[];
 };

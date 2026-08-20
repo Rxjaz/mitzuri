@@ -187,6 +187,13 @@ export default function ProjectsPage() {
                         Editar
                       </Link>
 
+                      <Link
+                        to={`/admin/projects/${project.id}/imagenes`}
+                        className="btn-link"
+                      >
+                        Imagenes
+                      </Link>
+
                       {STATUS_ACTIONS[project.status].map((action) => (
                         <Button
                           key={action.label}
