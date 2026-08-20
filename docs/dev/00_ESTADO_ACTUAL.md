@@ -143,6 +143,19 @@ El snapshot anterior ya quedo desactualizado en estos puntos:
 - `frontend/src/components/admin`, `blocks` y `shared` siguen vacios; solo `ui/` tiene contenido.
 - `frontend/src/App.css` sigue teniendo restos del starter de Vite.
 
+### Deuda aceptada a proposito en la subida de portada
+
+Documentada, no resuelta. Con ~10 proyectos, limpiar huerfanos a mano cuesta
+menos que construir la limpieza automatica.
+
+- Subir una imagen y no guardar el proyecto deja el archivo huerfano en R2.
+- Reemplazar una portada no borra la anterior.
+- Borrar un proyecto no borra su portada.
+- No se generan derivados optimizados; `optimized_url` queda en `null`.
+- El asset no queda asociado al proyecto en la base: `projects.cover_image_url`
+  sigue siendo una URL suelta. Cuando existan las secciones se decide si la
+  portada pasa a ser una llave foranea a `media_assets`.
+
 ## Verificacion tecnica realizada
 
 Comprobado el `2026-08-09`:

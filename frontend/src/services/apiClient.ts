@@ -18,8 +18,12 @@ async function request<T = unknown>(
 ): Promise<T> {
   const url = `${API_BASE_URL}${path}`;
 
+  //con FormData el header lo pone el navegador, porque incluye el `boundary`
+  //que separa las partes del multipart. Fijarlo a mano rompe la subida
+  const isFormData = options.body instanceof FormData;
+
   const headers: Record<string, string> = {
-    "Content-Type": "application/json",
+    ...(isFormData ? {} : { "Content-Type": "application/json" }),
     ...(options.headers as Record<string, string> || {}),
   };
 
@@ -82,4 +86,8 @@ export const apiClient = {
     request<T>(path, {
       method: "DELETE"
     }),
+
+  //el FormData se manda tal cual: nada de JSON.stringify
+  upload: <T = unknown>(path: string, formData: FormData) =>
+    request<T>(path, { method: "POST", body: formData }),
 };

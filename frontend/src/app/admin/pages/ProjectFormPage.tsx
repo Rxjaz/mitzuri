@@ -7,6 +7,7 @@ import {
 } from "../../../services/projects.service";
 import type { Project, ProjectInput } from "../../../types/project";
 import Button from "../../../components/ui/Button";
+import ImageUpload from "../../../components/ui/ImageUpload";
 import Input from "../../../components/ui/Input";
 import Textarea from "../../../components/ui/Textarea";
 
@@ -198,18 +199,15 @@ export default function ProjectFormPage() {
           </div>
         </div>
 
-        <div className="form-field">
-          <label className="form-label" htmlFor="cover_image_url">
-            Imagen de portada
-          </label>
-          <Input
-            id="cover_image_url"
-            type="url"
-            value={values.cover_image_url}
-            placeholder="https://..."
-            onChange={setField("cover_image_url")}
-          />
-        </div>
+        <ImageUpload
+          label="Imagen de portada"
+          value={values.cover_image_url || null}
+          //el contrato de projects no cambia: la portada sigue viajando como
+          //string, y "" la quita
+          onChange={(url) =>
+            setValues((prev) => ({ ...prev, cover_image_url: url ?? "" }))
+          }
+        />
 
         {error && <p className="form-error">{error}</p>}
 
