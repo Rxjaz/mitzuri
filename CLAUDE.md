@@ -141,6 +141,10 @@ Tablas: `users`, `projects`, `sections`, `media_assets`, `project_preview_tokens
   `docker-compose.yml`, `package.json`) sin decirlo antes.
 - No toques `.env`.
 - No hagas commits ni cambies de rama.
+- `docs/privado/` guarda material del cliente —portafolios, archivos con datos
+  personales— y está en `.gitignore`. Puedes leer de ahí si Ariel te lo pide,
+  pero **nunca** copies su contenido a un archivo versionado ni lo cites en el
+  código. El repositorio es público.
 - Si la spec es ambigua, **pregunta antes de decidir**. Una decisión de producto
   tomada en silencio cuesta más que una pregunta.
 
