@@ -4,6 +4,10 @@ import authRoutes from "./modules/auth/auth.routes.js";
 import projectsRoutes from "./modules/projects/projects.routes.js";
 import projectsPublicRoutes from "./modules/projects/projects.public.routes.js";
 import mediaRoutes from "./modules/media/media.routes.js";
+import {
+  projectSectionsRouter,
+  sectionsRouter,
+} from "./modules/sections/sections.routes.js";
 
 import errorMiddleware from "./shared/middleware/error.middleware.js";
 import { authMiddleware } from "./shared/middleware/auth.middleware.js";
@@ -25,7 +29,11 @@ app.use(
 
 app.use("/auth", authRoutes);
 
+app.use("/admin/projects", authMiddleware, projectSectionsRouter);
+
 app.use("/admin/projects", authMiddleware, projectsRoutes);
+
+app.use("/admin/sections", authMiddleware, sectionsRouter);
 
 app.use("/admin/media", authMiddleware, mediaRoutes);
 

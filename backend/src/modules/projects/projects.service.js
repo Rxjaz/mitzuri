@@ -1,4 +1,5 @@
 import * as projectsRepository from "./projects.repository.js";
+import * as sectionsRepository from "../sections/sections.repository.js";
 import { generateSlug } from "../../shared/utils/slug.js";
 import NotFoundError from "../../shared/errors/notFound.error.js";
 //import NotFoundError from '../../shared/errors/validation.error.js';
@@ -126,5 +127,9 @@ export const getPublicProjectBySlug = async (slug) => {
     throw new NotFoundError("Project not found");
   }
 
-  return project;
+  //la galeria viaja con el proyecto: la pagina publica se arma con una sola
+  //peticion. El feed, en cambio, no las necesita
+  const sections = await sectionsRepository.getPublicByProject(project.id);
+
+  return { ...project, sections };
 };

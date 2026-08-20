@@ -179,6 +179,38 @@
     @apply min-w-0 flex-1;
   }
 
+  /* ---- galeria del admin ---- */
+
+  .gallery-list {
+    @apply m-0 mt-6 flex list-none flex-col gap-4 p-0;
+  }
+
+  .gallery-item {
+    @apply flex flex-col gap-4 rounded-xl border border-border bg-surface p-4 sm:flex-row sm:items-start;
+  }
+
+  .gallery-thumb {
+    @apply h-24 w-32 shrink-0 rounded-lg border border-border bg-paper object-cover;
+  }
+
+  .gallery-body {
+    @apply min-w-0 flex-1;
+  }
+
+  /* los campos de la fila ya traen su propio margen: el ultimo sobra */
+  .gallery-body .form-field:last-child {
+    @apply mb-0;
+  }
+
+  .gallery-actions {
+    @apply flex shrink-0 items-center gap-2;
+  }
+
+  /* el numero de orden es referencia, no accion: se lee y no se toca */
+  .gallery-position {
+    @apply w-6 text-sm font-medium text-ink-muted tabular-nums;
+  }
+
   .btn-link {
     @apply text-sm font-medium text-ink-muted underline-offset-4 transition hover:text-brand hover:underline;
   }
@@ -266,6 +298,29 @@
   /* ancho de lectura comodo: ~65 caracteres por linea */
   .project-description {
     @apply mt-10 max-w-prose text-base leading-7 whitespace-pre-line text-ink;
+  }
+
+  /* la imagen manda: aire generoso entre una pieza y la siguiente */
+  .project-gallery {
+    @apply mt-16 flex flex-col gap-16;
+  }
+
+  .project-figure {
+    @apply m-0;
+  }
+
+  /* el marco reserva el alto antes de que la imagen cargue; sin proporcion
+     conocida cae a 4/3, que es lo mas comun en el material impreso */
+  .project-image-frame {
+    @apply aspect-[4/3] w-full overflow-hidden rounded-2xl bg-surface;
+  }
+
+  .project-image {
+    @apply h-full w-full object-cover;
+  }
+
+  .project-caption {
+    @apply mt-3 max-w-prose font-sans text-sm leading-6 text-ink-muted;
   }
 
   .project-back {
