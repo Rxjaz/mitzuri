@@ -63,6 +63,7 @@ export const updateProject = async (id, data) => {
     year: data.year ?? existing.year,
     client: data.client ?? existing.client,
     cover_image_url: data.cover_image_url ?? existing.cover_image_url,
+    sort_order: data.sort_order ?? existing.sort_order,
   };
 
   return await projectsRepository.updateProject(id, updateData);
@@ -110,4 +111,20 @@ export const unpublishProject = async (id) => {
   }
 
   return await projectsRepository.unpublishProject(id);
+};
+
+export const getPublishedProjects = async () => {
+  return await projectsRepository.getPublishedProjects();
+};
+
+export const getPublicProjectBySlug = async (slug) => {
+  const project = await projectsRepository.getPublicProjectBySlug(slug);
+
+  //un borrador y un slug inexistente tienen que dar el mismo 404: si se
+  //distinguen, cualquiera puede adivinar que borradores existen
+  if (!project) {
+    throw new NotFoundError("Project not found");
+  }
+
+  return project;
 };

@@ -12,7 +12,10 @@ export const createProjectSchema = z.object({
   //"" es valido y significa quitar la portada; cualquier otra cosa debe ser URL
   cover_image_url: z
     .union([z.url("Cover image must be a valid URL"), z.literal("")])
-    .optional()
+    .optional(),
+
+  //orden editorial del feed: numero mas chico aparece primero
+  sort_order: z.coerce.number().int().optional()
 });
 
 export const updateProjectSchema = createProjectSchema.partial();

@@ -11,6 +11,8 @@ export type Project = {
   slug_locked: boolean;
   year: number;
   client: string | null;
+  //orden editorial del feed: numero mas chico aparece primero
+  sort_order: number;
   created_at: string;
   updated_at: string;
   published_at: string | null;
@@ -25,4 +27,24 @@ export type ProjectInput = {
   client?: string;
   //"" limpia la portada
   cover_image_url?: string;
+  sort_order?: number;
+};
+
+//lo que devuelven los endpoints publicos. Es un subconjunto a proposito: sin
+//token no viajan columnas internas como `status` o `slug_locked`
+export type PublicProject = {
+  id: string;
+  title: string;
+  slug: string;
+  description: string;
+  cover_image_url: string | null;
+  year: number;
+  client: string | null;
+  published_at: string | null;
+};
+
+//la pagina de proyecto si necesita el estado, para marcar `noindex` cuando el
+//proyecto es no listado
+export type PublicProjectDetail = PublicProject & {
+  status: "published" | "unlisted";
 };

@@ -17,6 +17,7 @@ type FormValues = {
   year: string;
   client: string;
   cover_image_url: string;
+  sort_order: string;
 };
 
 const EMPTY_FORM: FormValues = {
@@ -25,6 +26,7 @@ const EMPTY_FORM: FormValues = {
   year: String(new Date().getFullYear()),
   client: "",
   cover_image_url: "",
+  sort_order: "0",
 };
 
 //los opcionales se mandan siempre, incluso vacios: asi se pueden limpiar
@@ -34,6 +36,7 @@ const buildPayload = (values: FormValues): ProjectInput => ({
   year: Number(values.year),
   client: values.client.trim(),
   cover_image_url: values.cover_image_url.trim(),
+  sort_order: Number(values.sort_order || 0),
 });
 
 export default function ProjectFormPage() {
@@ -66,6 +69,7 @@ export default function ProjectFormPage() {
           year: String(project.year),
           client: project.client ?? "",
           cover_image_url: project.cover_image_url ?? "",
+          sort_order: String(project.sort_order),
         });
       } catch (err) {
         if (cancelled) return;
@@ -157,6 +161,18 @@ export default function ProjectFormPage() {
                 ? " · fija, ya no cambia aunque edites el titulo"
                 : " · se regenera desde el titulo hasta que salga de borrador"}
             </p>
+
+            {/* en borrador la pagina publica responde 404, asi que no se ofrece */}
+            {current.status !== "draft" && (
+              <a
+                href={`/proyectos/${current.slug}`}
+                target="_blank"
+                rel="noreferrer"
+                className="btn-link"
+              >
+                Ver pagina publica
+              </a>
+            )}
           </div>
         )}
 
@@ -197,6 +213,19 @@ export default function ProjectFormPage() {
               onChange={setField("client")}
             />
           </div>
+        </div>
+
+        <div className="form-field">
+          <label className="form-label" htmlFor="sort_order">
+            Orden
+          </label>
+          <Input
+            id="sort_order"
+            type="number"
+            value={values.sort_order}
+            onChange={setField("sort_order")}
+          />
+          <p className="field-hint">Numero mas chico aparece primero.</p>
         </div>
 
         <ImageUpload

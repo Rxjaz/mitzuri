@@ -16,6 +16,13 @@ export default function PublicLayout() {
       <main className="app-main">
         <Outlet />
       </main>
+
+      <footer className="site-footer">
+        <div className="site-footer-inner">
+          <span>Mitzuri · Diseno y direccion de arte</span>
+          <span>© {new Date().getFullYear()}</span>
+        </div>
+      </footer>
     </div>
   );
 }
