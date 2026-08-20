@@ -11,3 +11,14 @@ export type MediaAsset = {
   file_size_bytes: number | null;
   created_at: string;
 };
+
+//la portada tal como la devuelve el backend con el proyecto: una proyeccion del
+//asset, no la fila entera. Trae la forma de la imagen, que es lo que el sitio
+//necesita para no recortarla
+export type CoverAsset = {
+  id: string;
+  url: string;
+  alt: string | null;
+  width: number | null;
+  height: number | null;
+};

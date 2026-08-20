@@ -17,3 +17,25 @@ export const createMediaAsset = async (data) => {
 
   return rows[0];
 };
+
+export const getMediaAssetById = async (id) => {
+
+  const { rows } = await pool.query(
+    "SELECT * FROM media_assets WHERE id = $1",
+    [id]
+  );
+
+  return rows[0];
+};
+
+export const updateAltText = async (id, altText) => {
+
+  const { rows } = await pool.query(`
+        UPDATE media_assets
+        SET alt_text = $1
+        WHERE id = $2
+        RETURNING *;
+    `, [altText, id]);
+
+  return rows[0];
+};

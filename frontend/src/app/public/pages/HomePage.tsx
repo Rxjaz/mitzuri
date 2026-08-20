@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import type { CSSProperties } from "react";
 import { Link } from "react-router-dom";
 import { getPublicProjects } from "../../../services/projects.public.service";
 import type { PublicProject } from "../../../types/project";
@@ -6,8 +7,28 @@ import Cover from "../../../components/ui/Cover";
 
 type LoadState = "loading" | "ready" | "error";
 
+//un solo sitio para el numero de columnas: de aqui sale tanto el reparto en
+//React como la rejilla en CSS. Subirlo a tres cuando haya mas proyectos
+const FEED_COLUMNS = 2;
+
 const formatMeta = (project: PublicProject): string => {
   return [project.client, project.year].filter(Boolean).join(" · ");
+};
+
+//las fichas se reparten alternando, no por bloques: leyendo de izquierda a
+//derecha el orden curado se percibe correcto. Con `columns` de CSS las fichas
+//fluyen hacia abajo por columna y ese orden se rompe
+const splitIntoColumns = (
+  projects: PublicProject[],
+  columns: number
+): PublicProject[][] => {
+  const buckets: PublicProject[][] = Array.from({ length: columns }, () => []);
+
+  projects.forEach((project, index) => {
+    buckets[index % columns].push(project);
+  });
+
+  return buckets;
 };
 
 export default function HomePage() {
@@ -39,9 +60,10 @@ export default function HomePage() {
     };
   }, []);
 
-  //el primero del orden manda: portada ancha y titulo grande. El resto va en
-  //cuadricula, que en movil colapsa a una columna
+  //el primero del orden manda: portada a todo el ancho y titulo grande. El
+  //resto va en mosaico, que en movil colapsa a una sola columna
   const [featured, ...rest] = projects;
+  const columns = splitIntoColumns(rest, FEED_COLUMNS);
 
   return (
     <>
@@ -72,29 +94,40 @@ export default function HomePage() {
         <div className="feed">
           <article>
             <Link to={`/proyectos/${featured.slug}`} className="feed-card group">
-              <Cover
-                src={featured.cover_image_url}
-                alt={featured.title}
-                ratio="hero"
-              />
+              <Cover cover={featured.cover} />
               <h1 className="feed-hero-title">{featured.title}</h1>
               <p className="feed-meta">{formatMeta(featured)}</p>
             </Link>
           </article>
 
           {rest.length > 0 && (
-            <div className="feed-grid">
-              {rest.map((project) => (
-                <article key={project.id}>
-                  <Link to={`/proyectos/${project.slug}`} className="feed-card group">
-                    <Cover
-                      src={project.cover_image_url}
-                      alt={project.title}
-                    />
-                    <h2 className="feed-card-title">{project.title}</h2>
-                    <p className="feed-meta">{formatMeta(project)}</p>
-                  </Link>
-                </article>
+            <div
+              className="feed-mosaic"
+              style={{ "--feed-columns": FEED_COLUMNS } as CSSProperties}
+            >
+              {columns.map((column, columnIndex) => (
+                //en movil la columna es `display: contents` y sus fichas pasan
+                //a ser hijas de la rejilla: con `order` recuperan el orden
+                //exacto. En escritorio vuelve a ser una columna de verdad
+                <div key={columnIndex} className="feed-column">
+                  {column.map((project, indexInColumn) => (
+                    <article
+                      key={project.id}
+                      style={{
+                        order: indexInColumn * FEED_COLUMNS + columnIndex,
+                      }}
+                    >
+                      <Link
+                        to={`/proyectos/${project.slug}`}
+                        className="feed-card group"
+                      >
+                        <Cover cover={project.cover} />
+                        <h2 className="feed-card-title">{project.title}</h2>
+                        <p className="feed-meta">{formatMeta(project)}</p>
+                      </Link>
+                    </article>
+                  ))}
+                </div>
               ))}
             </div>
           )}

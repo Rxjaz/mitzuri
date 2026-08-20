@@ -6,6 +6,7 @@ import * as mediaRepository from "./media.repository.js";
 import { r2 } from "../../shared/storage/r2Client.js";
 import { getRequiredEnv } from "../../shared/utils/env.js";
 import ValidationError from "../../shared/errors/validation.error.js";
+import NotFoundError from "../../shared/errors/notFound.error.js";
 
 //la extension sale del mime, nunca del nombre que manda el cliente
 const ALLOWED_MIME_TYPES = {
@@ -66,4 +67,14 @@ export const uploadMedia = async (file, altText) => {
     height,
     file_size_bytes: file.size,
   });
+};
+
+export const updateAltText = async (id, altText) => {
+  const asset = await mediaRepository.getMediaAssetById(id);
+
+  if (!asset) {
+    throw new NotFoundError("Media asset not found");
+  }
+
+  return await mediaRepository.updateAltText(id, altText);
 };

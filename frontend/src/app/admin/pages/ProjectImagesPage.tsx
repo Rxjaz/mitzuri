@@ -110,14 +110,17 @@ export default function ProjectImagesPage() {
   const handleFieldBlur = (
     section: Section,
     field: "alt" | "caption",
-    value: string
+    input: HTMLInputElement
   ) => {
-    const trimmed = value.trim();
+    const trimmed = input.value.trim();
 
     if (field === "alt") {
-      //el backend rechaza un alt vacio; avisar aqui evita un 400 sin contexto
+      //el backend rechaza un alt vacio; avisar aqui evita un 400 sin contexto.
+      //el campo recupera su valor anterior, que es el que sigue en la base: si
+      //se quedara vacio pareceria que se guardo asi
       if (!trimmed) {
         setError("El texto alternativo es obligatorio.");
+        input.value = section.content.alt;
         return;
       }
 
@@ -292,7 +295,7 @@ export default function ProjectImagesPage() {
                     defaultValue={section.content.alt}
                     required
                     disabled={busyId === section.id}
-                    onBlur={(e) => handleFieldBlur(section, "alt", e.target.value)}
+                    onBlur={(e) => handleFieldBlur(section, "alt", e.target)}
                   />
                   <p className="field-hint">
                     Describe la imagen. Se guarda al salir del campo.
@@ -311,7 +314,7 @@ export default function ProjectImagesPage() {
                     defaultValue={section.content.caption ?? ""}
                     disabled={busyId === section.id}
                     onBlur={(e) =>
-                      handleFieldBlur(section, "caption", e.target.value)
+                      handleFieldBlur(section, "caption", e.target)
                     }
                   />
                   <p className="field-hint">Opcional.</p>
