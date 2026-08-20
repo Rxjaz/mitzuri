@@ -21,3 +21,6 @@ dist-ssr/
 
 # claude
 .claude/
+
+# material privado: portafolios, archivos del cliente, nada de esto se versiona
+docs/privado/
