@@ -163,6 +163,22 @@
     @apply text-sm text-ink-muted;
   }
 
+  .upload-dropzone {
+    @apply rounded-xl border border-dashed border-border bg-surface px-6 py-8 text-center;
+  }
+
+  .upload-preview {
+    @apply flex items-start gap-4 rounded-xl border border-border bg-surface p-4;
+  }
+
+  .upload-thumb {
+    @apply h-24 w-32 shrink-0 rounded-lg border border-border object-cover;
+  }
+
+  .upload-preview-body {
+    @apply min-w-0 flex-1;
+  }
+
   .btn-link {
     @apply text-sm font-medium text-ink-muted underline-offset-4 transition hover:text-brand hover:underline;
   }
