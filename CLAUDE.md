@@ -163,11 +163,19 @@ Tablas: `users`, `projects`, `sections`, `media_assets`, `project_preview_tokens
 
 ## Estado actual
 
-Cerrado: auth admin con sesión persistente, guards de rutas, CRUD de proyectos
-con publish/unpublish, migraciones y seed.
+**La v1 está completa y en producción** desde el `2026-08-23`: auth con sesión
+persistente, CRUD de proyectos con tres estados, subida de media a R2, galería
+por proyecto con reordenamiento, sitio público con feed y página por slug, y
+metadatos de portafolio.
 
-Siguiente: **subida de portada** (primer corte del módulo media). Después:
-resto de media, secciones, preview privada, sitio público.
+Frontend en Vercel, API en Render, base en Neon, imágenes en Cloudflare R2.
 
-No hay tests todavía. Si agregas comportamiento con reglas no triviales,
-propón el test — no lo des por hecho.
+La preview por token se canceló: la tabla `project_preview_tokens` existe, nunca
+se usó, y su caso de uso lo cubre el estado `unlisted`.
+
+Lo que existe hoy y lo que falta está en `docs/dev/00_ESTADO_ACTUAL.md`, que es
+la fuente de verdad. No lo asumas desde aquí.
+
+**No hay tests.** Fue una decisión consciente mientras cada cambio pasaba por
+una spec con criterios de aceptación. Si agregas comportamiento con reglas no
+triviales, propón el test — no lo des por hecho.

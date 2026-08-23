@@ -1,177 +1,130 @@
 # Fases de desarrollo
 
-Estas fases ya consideran el estado real del repo al `2026-05-28`.
+Revisado el `2026-08-23`. **Las ocho fases de la v1 están cerradas** y el
+producto está en producción.
 
-## Fase 0 - Fundacion tecnica
+Este documento pasa de ser un plan a ser un registro: sirve para entender qué se
+construyó, en qué orden y por qué. La planeación de la v2 aún no existe.
 
-Objetivo:
+## Fase 0 — Fundación técnica · cerrada
 
-Dejar estable la base comun para avanzar sin contradicciones entre backend, DB y frontend.
-
-### Ya logrado
-
-- [x] Monorepo base
+- [x] Monorepo con `backend/`, `frontend/` y `docs/`
 - [x] Postgres local por Docker
 - [x] Runner de migraciones con checksum
-- [x] Migraciones iniciales
-- [x] ESLint backend y frontend
-- [x] Estructura base de carpetas frontend
-- [x] Estructura modular base en backend
-- [x] Cliente API base frontend
-- [x] Ruteo frontend minimo
+- [x] ESLint en ambos paquetes
+- [x] Cliente API base en el frontend
+- [x] `.gitattributes` normalizando finales de línea a LF
+- [x] `CLAUDE.md` con las convenciones del repositorio
 
-### Falta cerrar
+Lo de los finales de línea no era cosmético: Windows los reescribía y cada
+archivo tocado aparecía como reescrito entero, con lo que un diff de 12 archivos
+reales llegaba como 43 archivos y 1300 líneas.
 
-- [ ] Guard privado frontend para admin
-- [ ] Shell base del admin
-- [ ] Sustituir estilos starter por sistema visual propio
-- [ ] Documentar `.env.example` si el setup deja de ser solo personal
+## Fase 1 — Auth admin · cerrada
 
-## Fase 1 - Auth admin
+- [x] Tabla `users` y seed
+- [x] `login`, `logout`, `me`
+- [x] `authMiddleware`
+- [x] Sesión persistente con `AuthProvider`
+- [x] Guards `ProtectedRoute` y `GuestRoute`
+- [x] Token aislado en `token.storage.ts`
 
-Objetivo:
+## Fase 2 — CRUD de proyectos · cerrada
 
-Tener acceso privado realmente util para trabajar el CMS.
+- [x] Las siete operaciones, de punta a punta
+- [x] Slug derivado del título, único
+- [x] Tres estados: `draft`, `unlisted`, `published`
+- [x] Slug congelado al salir de borrador, **para siempre**
 
-### Ya logrado
+Ese último punto corrigió un bug real: el slug solo se congelaba mientras el
+proyecto estuviera publicado, así que despublicar lo liberaba y cambiar el
+título rompía una URL ya compartida.
 
-- [x] Tabla `users`
-- [x] Seed admin
-- [x] `POST /auth/login`
-- [x] `POST /auth/logout`
-- [x] `GET /auth/me`
-- [x] Middleware auth base
-- [x] Proteccion backend de `/admin/projects`
-- [x] UI base de login
+## Fase 3 — Base visual · cerrada
 
-### Falta cerrar
+- [x] Tailwind 4 con tokens en el `@theme` de `index.css`
+- [x] Tipografías propias, self-hosted: Yeseva One y Be Vietnam Pro
+- [x] Paleta real: `#070707`, `#FFFFFF`, `#0D30F2`
+- [x] Componentes base en `components/ui/`
+- [x] Cero colores literales de Tailwind en el código
 
-- [ ] Persistencia y restauracion robusta de sesion en frontend
-- [ ] Guard de rutas admin
-- [ ] Estado global o proveedor de auth si la UI crece
-- [ ] Decidir si el modelo de token simple sera suficiente
+Se hizo antes de multiplicar pantallas, no después. La decisión resultó
+correcta: cuando llegaron el feed y la página de proyecto, ya había con qué
+construirlas.
 
-## Fase 2 - CRUD de proyectos
+## Fase 4 — Media · cerrada
 
-Objetivo:
+- [x] `POST /admin/media` con subida real a R2
+- [x] Ancho y alto leídos del archivo
+- [x] Texto alternativo obligatorio y editable
+- [x] Componente `ImageUpload`
+- [x] Portada como llave foránea a `media_assets`
 
-Permitir crear y administrar proyectos base sin tocar la base manualmente.
+Lo último llegó tarde y con costo: mientras la portada fue una URL suelta, el
+feed no sabía qué forma tenían las imágenes y las recortaba todas igual.
 
-### Ya logrado
+Sin cerrar, a propósito: derivados optimizados y limpieza de huérfanos.
 
-- [x] Crear proyecto
-- [x] Listar proyectos
-- [x] Ver proyecto por id
-- [x] Editar proyecto
-- [x] Eliminar proyecto
-- [x] Publicar y despublicar
-- [x] Conectar este CRUD a una UI admin real
-- [x] Agregar servicio frontend de `projects`
-- [x] Crear listado y formulario minimo
-- [x] Slug siempre derivado del titulo, unico, y congelado al publicar
-- [x] `cover_image_url` se puede poner y limpiar desde la UI
+## Fase 5 — Secciones · cerrada para el alcance decidido
 
-### Falta cerrar
+- [x] Módulo `sections` completo: CRUD, reordenamiento, schema por tipo
+- [x] Restricción diferible que hace posible reordenar
+- [x] Galería en el admin, en pantalla propia
+- [x] Render público de la galería
 
-- [ ] Validar reglas adicionales de publicacion si se necesitan
-- [ ] Feedback de exito tras guardar, hoy solo redirige al listado
-- [ ] Campos de identidad del proyecto, ver [05_IDENTIDAD_Y_FEED.md](../producto/05_IDENTIDAD_Y_FEED.md)
+Solo existe el tipo `image`. El contenido real de la diseñadora es un párrafo
+corto más imágenes, así que el sistema de bloques completo era artillería de
+más. El mapa de schemas está listo para recibir `text` cuando haga falta.
 
-## Fase 3 - Base visual del admin
+## Fase 6 — Preview privada · cancelada
 
-Objetivo:
+La tabla `project_preview_tokens` existe desde la migración `006` y nunca se
+usó.
 
-Definir una base de UI reutilizable antes de multiplicar pantallas.
+Su caso de uso —compartir trabajo sin publicarlo— lo resolvió el estado
+`unlisted` de forma más simple: URL permanente, sin token que administrar. Lo
+único que no cubre es enseñar un borrador a medias, y no apareció la necesidad.
 
-### Falta casi todo
+Decisión cerrada el `2026-08-23`. La tabla debería eliminarse en una migración
+futura.
 
-- [ ] Instalar Tailwind
-- [ ] Definir tokens base de espaciado, tipografia y color
-- [ ] Crear layout de admin
-- [ ] Crear componentes base de formulario, boton, card, estado vacio y feedback
+## Fase 7 — Sitio público · cerrada
 
-Nota:
+- [x] Feed en mosaico de dos columnas
+- [x] Página por `slug`
+- [x] Portadas a su proporción real, sin recorte
+- [x] `title` y `meta description` por página
+- [x] `noindex` en los proyectos no listados
+- [x] Orden editorial con `sort_order`
+- [x] Categoría, herramientas, acento y créditos
 
-Esta fase conviene hacerla junto con Fase 1 y Fase 2, no al final. La razon es simple: hoy la superficie del frontend aun es chica y cambiar de estrategia visual despues costaria mas.
+El reparto en columnas se hace en React alternando fichas, no con `columns` de
+CSS: así el orden curado se lee de izquierda a derecha. En móvil colapsa a una
+columna con el orden exacto.
 
-## Fase 4 - Media
+Sin cerrar: Open Graph.
 
-Objetivo:
+## Fase 8 — Calidad y operación · parcial
 
-Resolver el manejo de imagenes antes del editor narrativo completo.
-
-### Ya logrado
-
-- [x] Tabla `media_assets`
-- [x] Cliente R2 configurado
-
-### Falta cerrar
-
-- [ ] Endpoints de media
-- [ ] Subida real
-- [ ] Asociacion con proyectos y secciones
-- [ ] Validacion `alt`
-- [ ] Estrategia de derivados optimizados
-
-## Fase 5 - Secciones y narrativa
-
-Objetivo:
-
-Construir el corazon del CMS.
-
-### Ya logrado
-
-- [x] Tabla `sections`
-
-### Falta cerrar
-
-- [ ] Modulo `sections`
-- [ ] CRUD de bloques
-- [ ] Reordenamiento
-- [ ] Schemas por tipo
-- [ ] Render frontend por `type`
-
-## Fase 6 - Preview privada
-
-Objetivo:
-
-Permitir revisar y compartir proyectos antes de publicarlos.
-
-### Ya logrado
-
-- [x] Tabla `project_preview_tokens`
-
-### Falta cerrar
-
-- [ ] Generacion de token
-- [ ] Invalidacion o regeneracion
-- [ ] Endpoint publico por token
-- [ ] Pantalla frontend de preview
-
-## Fase 7 - Sitio publico
-
-Objetivo:
-
-Exponer el portafolio publicado.
-
-### Falta casi todo
-
-- [ ] Home publica
-- [ ] Listado publico de proyectos
-- [ ] Pagina por `slug`
-- [ ] Render de bloques
-- [ ] SEO base
-
-## Fase 8 - Calidad y operacion
-
-Objetivo:
-
-Reducir deuda operativa antes de crecimiento o deploy serio.
-
-### Falta casi todo
-
-- [ ] Tests backend
-- [ ] Tests frontend
+- [x] Deploy en producción: Vercel, Render, Neon y R2
+- [x] Migraciones corriendo solas al arrancar
+- [x] `/health` que comprueba la conexión a la base
+- [x] Documentación de deploy con sus trampas
+- [ ] **Tests**
 - [ ] CI
-- [ ] Documentacion de deploy
-- [ ] Observabilidad minima
+- [ ] Observabilidad
+
+No hay ni un test. Fue una decisión consciente mientras cada cambio pasaba por
+una spec con criterios de aceptación y una auditoría del diff. Con contenido
+real cargado, deja de serlo.
+
+---
+
+## Lo que sigue
+
+El siguiente paso no es una fase técnica: es que la diseñadora cargue sus doce
+proyectos y se anote todo lo que le cueste trabajo. La v2 se planea con esa
+lista en la mano, no antes.
+
+Los pendientes abiertos y su fecha de caducidad están en
+[00_ESTADO_ACTUAL.md](00_ESTADO_ACTUAL.md).

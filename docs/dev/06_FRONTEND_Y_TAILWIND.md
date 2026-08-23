@@ -1,178 +1,136 @@
 # Frontend y Tailwind
 
-## Estado actual
+Revisado el `2026-08-23`. Tailwind 4 ya está adoptado y el sistema visual ya
+tiene los valores reales de la diseñadora. Este documento explica cómo está
+montado y cómo decidir dónde va cada cosa.
 
-Hoy el frontend ya tiene estas piezas reales:
+## El sistema de tokens
 
-- `react-router-dom`
-- `apiClient`
-- `auth.service`
-- `LoginPage`
-- ruta `/admin`
-- plugin de Tailwind activo en `frontend/vite.config.ts`
-- import global de Tailwind en `frontend/src/index.css`
-- archivo de clases semanticas en `frontend/src/styles/components.css`
-- componentes UI base en `frontend/src/components/ui/`
+Todo el color y la tipografía viven en el bloque `@theme` de
+[frontend/src/index.css](../../frontend/src/index.css):
 
-La base heredada del starter de Vite ya se limpio. `App.css` quedo vacio y `index.css` ahora funciona como entrada minima de estilos globales.
+```css
+@theme {
+  --font-display: "Yeseva One", Georgia, serif;
+  --font-sans: "Be Vietnam Pro", system-ui, sans-serif;
 
-## Decision recomendada
+  --text-display-xl: 4rem;
+  --text-display-lg: 2.75rem;
+  --text-display-md: 1.75rem;
 
-Si vas a introducir Tailwind, el mejor momento es ahora, antes de construir:
+  --color-ink: #070707;
+  --color-ink-muted: #5c5c61;
+  --color-paper: #ffffff;
+  --color-surface: #f5f5f7;
+  --color-border: #e2e2e6;
+  --color-brand: #0d30f2;
+  --color-brand-strong: #0a26c2;
+  --color-brand-soft: #edf0fe;
+  --color-danger: #b42318;
+}
+```
 
-- dashboard admin
-- lista de proyectos
-- formulario de proyecto
-- editor de secciones
+Eso genera las utilidades solo: `bg-brand`, `text-ink-muted`, `border-border`.
 
-No conviene posponerlo hasta despues, porque cada pantalla nueva aumentaria el costo de migracion.
+**Está prohibido usar colores literales de Tailwind.** Nada de `stone-900`,
+`blue-600` ni `gray-100`. Si un color que necesitas no existe como token, se
+pregunta; no se inventa.
 
-## Objetivo de Tailwind en este proyecto
+La razón no es purismo. Antes de tener tokens, cada componente traía el gris que
+un agente eligió porque no tenía nada mejor, y esa paleta accidental se iba
+heredando pantalla tras pantalla. Con tokens, cambiar un hex cambia el sitio
+entero.
 
-Tailwind no deberia entrar para "decorar" la app actual. Deberia entrar para resolver tres cosas:
+### Verificación
 
-1. velocidad al construir el admin
-2. consistencia visual desde componentes pequenos
-3. base reutilizable para el futuro sitio publico
+```bash
+grep -rE "stone-|slate-|gray-|zinc-" frontend/src
+```
 
-## Alcance recomendado de la adopcion
+Vacío o está mal.
 
-### Si
+## Tipografía
 
-- usar Tailwind como base de layout, espaciado, tipografia y estados
-- definir un set chico de patrones reutilizables
-- combinar utilidades con componentes pequenos propios
-- conservar CSS plano solo para resets o casos muy especificos
+**Yeseva One** solo en el sitio público y solo a 24px o más. Tiene un único peso
+—sin bold, sin itálica— así que la jerarquía entre títulos se hace con **tamaño
+y espaciado**, nunca con peso.
 
-### No
+**Be Vietnam Pro** para todo lo demás, en 400, 500 y 700.
 
-- meter una libreria UI grande antes de entender bien el CMS
-- mezclar Tailwind con mucho CSS heredado del starter
-- construir un design system enorme antes de tener pantallas reales
+El admin no carga la display: es una herramienta de trabajo, y una serif de
+display en tablas y formularios estorba. Por eso Yeseva se importa dentro de
+`PublicLayout.tsx` y no en `main.tsx`.
 
-## Implementacion real que ya quedo montada
+Las dos son self-hosted con `@fontsource`, así que viajan en el build y no
+dependen de un tercero.
 
-El repo ya quedo en este estado:
+## El color de acento por proyecto
 
-1. `tailwindcss` y `@tailwindcss/vite` viven en `frontend/package.json`.
-2. `frontend/vite.config.ts` usa `tailwindcss()` junto al plugin de React.
-3. `frontend/src/index.css` importa:
-   - `tailwindcss`
-   - `./styles/components.css`
-4. `frontend/src/styles/components.css` concentra clases semanticas armadas con `@apply`.
-5. `frontend/src/components/ui/` ya tiene una base minima:
-   - `Button.tsx`
-   - `Input.tsx`
-   - `Card.tsx`
-6. `frontend/src/lib/cn.ts` ya existe para concatenar clases.
-7. `LoginPage`, `AdminLayout`, `PublicLayout`, `DashboardPage` y `HomePage` ya usan esta base.
+Cada proyecto puede tener su `accent_color`, y dentro de su página **sustituye
+al azul del sitio**. Como los tokens son variables CSS, basta redefinirlas en el
+elemento raíz:
 
-## Patron de estilos recomendado
+```tsx
+<article style={{ "--color-brand": project.accent_color }}>
+```
 
-### Nivel 1: utilidades Tailwind
+Todo lo que use `brand` ahí dentro cambia solo. Sin duplicar clases ni escribir
+colores en línea.
 
-Usalas cuando el ajuste es pequeno y local.
+La regla que lo ordena: azul, blanco y negro son la identidad **del sitio**; el
+acento es la identidad **del proyecto**. Nunca compiten en la misma pantalla.
 
-Ejemplo:
+El formulario avisa si el acento elegido tiene menos de 4.5:1 de contraste sobre
+blanco, con el cálculo en `lib/contrast.ts`. **Avisa, no bloquea**: la decisión
+es de la diseñadora, pero merece el dato.
 
-- `className="w-full"`
-- `className="mt-6"`
+## Los tres niveles de estilo
 
-### Nivel 2: clases semanticas en CSS
+**Utilidades sueltas** cuando el ajuste es pequeño y local: `mt-6`, `w-full`.
 
-Usalas cuando un bloque visual:
+**Clases semánticas** en `styles/components.css`, dentro de `@layer components`,
+cuando un bloque visual se repite y ya expresa una intención: `.panel-card`,
+`.feed-mosaic`, `.badge-published`.
 
-- se repite
-- tiene muchas utilidades
-- ya expresa una intencion clara
+**Componentes React** en `components/ui/` cuando la pieza tiene estructura HTML
+repetida y recibe props: `Button`, `Input`, `Select`, `Cover`, `ImageUpload`.
 
-Ejemplos reales:
+La regla práctica: si se repite solo el estilo, clase semántica. Si se repite
+estructura y props, componente. Si es único y corto, utilidad inline.
 
-- `.panel-card`
-- `.app-header`
-- `.auth-card`
-- `.hero-title`
+## Convenciones de los componentes
 
-Esas clases viven en `frontend/src/styles/components.css` dentro de `@layer components`.
+- `export default`
+- props tipadas con `type`, no `interface`
+- variantes como `Record<Variant, string>` de clases **completas**
+- `cn` de `lib/cn.ts` **solo concatena**; no resuelve conflictos de Tailwind, así
+  que cada variante trae su set entero en vez de sobreescribir una base
+- para pasar `ref`, usar `ComponentProps<"input">` y no
+  `InputHTMLAttributes`: en React 19 la ref es una prop normal
 
-### Nivel 3: componentes React
-
-Usalos cuando una pieza:
-
-- tiene estructura HTML repetida
-- recibe props
-- combina comportamiento y presentacion
-
-Ejemplos reales:
-
-- `Button`
-- `Input`
-- `Card`
-
-## Regla practica
-
-- si se repite solo estilo: crear clase semantica en CSS
-- si se repite estructura y props: crear componente React
-- si el ajuste es unico y corto: dejar utilidades inline
-
-## Estructura frontend vigente
+## Estructura vigente
 
 ```text
 frontend/src/
-|-- app/
-|   |-- admin/
-|   |   |-- layout/
-|   |   |-- pages/
-|   |   |-- routes.tsx
-|   `-- public/
-|       |-- layout/
-|       |-- pages/
-|       `-- routes.tsx
-|-- components/
-|   |-- ui/
-|   |-- admin/
-|   `-- shared/
-|-- lib/
-|   `-- cn.ts
-|-- styles/
-|   `-- components.css
-|-- services/
-`-- types/
+├── app/
+│   ├── admin/     auth, layout, pages, routes.tsx
+│   └── public/    layout, pages, routes.tsx
+├── components/ui/ todo lo compartido vive aqui
+├── lib/           cn.ts, contrast.ts
+├── services/      apiClient y uno por feature
+├── styles/        components.css
+└── types/         auth, project, media, section
 ```
+
+Se planearon `components/admin/`, `components/blocks/` y `components/shared/`, y
+ninguna llegó a usarse: **todo lo compartido acabó en `ui/`**. Si esas carpetas
+siguen en tu disco, están vacías.
 
 ## Riesgos a evitar
 
-- empezar por estilos del sitio publico antes del admin
-- volver a meter CSS heredado del starter sin criterio
-- crear demasiadas abstracciones de UI antes de tener 2 o 3 pantallas reales
-- meter `shadcn/ui` demasiado pronto si aun no esta claro el lenguaje visual
-- esconder toda utilidad dentro de clases semanticas; eso elimina parte del beneficio de Tailwind
-
-## Mejor paso estrategico para seguir
-
-El siguiente paso estrategico no es `media`, ni `sections`, ni el sitio publico. Es este:
-
-`cerrar el slice admin base: login -> sesion -> dashboard minimo -> proyectos`
-
-Dentro de ese slice, Tailwind entra como habilitador, no como iniciativa separada.
-
-## Orden concreto recomendado
-
-1. Confirmar flujo de auth frontend con `getMe` y redireccion basica.
-2. Endurecer guard de rutas admin.
-3. Reusar la shell admin y componentes UI base ya creados.
-4. Implementar `projects.service.ts`.
-5. Crear `ProjectsPage` con listado.
-6. Crear formulario minimo para alta y edicion.
-7. Despues pasar a `media`.
-
-## Criterio para saber si el paso ya quedo bien
-
-Vas en la direccion correcta cuando puedas:
-
-- hacer login
-- mantener sesion
-- entrar a `/admin`
-- ver proyectos
-- crear o editar un proyecto
-- hacerlo todo en una UI ya consistente
+- volver a meter un color literal "solo por esta vez"
+- usar la display por debajo de 24px, o intentar ponerle negritas
+- esconder toda utilidad dentro de clases semánticas; eso elimina buena parte
+  del beneficio de Tailwind
+- crear abstracciones de UI antes de tener dos o tres pantallas que las pidan
+- meter una librería de componentes ahora que el lenguaje visual ya es propio

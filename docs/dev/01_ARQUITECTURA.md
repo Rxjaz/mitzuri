@@ -1,16 +1,18 @@
 # Arquitectura
 
+Revisado el `2026-08-23`, contra el código real del repositorio.
+
 ## Flujo general
 
-Arquitectura objetivo de producto:
+```
+Sitio publico  ─┐
+                ├─→  HTTP API (Express)  ─→  PostgreSQL
+Panel admin    ─┘                        └─→  Cloudflare R2
+```
 
-`Frontend publico/admin -> HTTP API -> Backend -> PostgreSQL + R2`
-
-Arquitectura real hoy:
-
-`Frontend admin minimo -> Backend Express -> PostgreSQL`
-
-R2 existe como cliente configurado, pero todavia no como flujo funcional.
+Las imágenes no pasan por el API al leerse: se suben a través de él, pero se
+sirven directo desde `cdn.mitzuri.com`. Lo único que guarda PostgreSQL de una
+imagen es su metadata.
 
 ## Backend
 
@@ -18,71 +20,73 @@ R2 existe como cliente configurado, pero todavia no como flujo funcional.
 
 ```text
 backend/
-|-- package.json
-|-- eslint.config.js
-|-- Dockerfile
-|-- scripts/
-|   |-- migrate.js
-|   `-- seed-dev.js
-|-- sql/
-|   |-- 001_extensions.sql
-|   |-- 002_users.sql
-|   |-- 003_projects.sql
-|   |-- 004_sections.sql
-|   |-- 005_media_assets.sql
-|   `-- 006_project_preview_tokens.sql
-`-- src/
-    |-- app.js
-    |-- server.js
-    |-- modules/
-    |   |-- auth/
-    |   |   |-- auth.routes.js
-    |   |   |-- auth.controller.js
-    |   |   |-- auth.service.js
-    |   |   |-- auth.repository.js
-    |   |   `-- auth.schemas.js
-    |   |-- projects/
-    |   |   |-- projects.routes.js
-    |   |   |-- projects.controller.js
-    |   |   |-- projects.service.js
-    |   |   |-- projects.repository.js
-    |   |   `-- projects.schemas.js
-    |   |-- media/
-    |   `-- sections/
-    `-- shared/
-        |-- db/
-        |-- errors/
-        |-- middleware/
-        |-- storage/
-        |-- utils/
-        `-- validators/
+├── Dockerfile
+├── eslint.config.js
+├── package.json
+├── scripts/
+│   ├── migrate.js
+│   └── seed-dev.js
+├── sql/                       # 001 a 011, ver 02_DATOS_Y_API.md
+└── src/
+    ├── app.js
+    ├── server.js
+    ├── modules/
+    │   ├── auth/              # routes, controller, service, repository, schemas
+    │   ├── projects/          # + projects.public.routes.js
+    │   ├── media/
+    │   └── sections/
+    └── shared/
+        ├── db/                # pool de pg
+        ├── errors/            # AppError y sus cuatro hijos
+        ├── middleware/        # auth, validate, error, upload
+        ├── storage/           # cliente S3 hacia R2
+        └── utils/             # env, slug
 ```
 
-### Capas que ya estan vivas
+Los cuatro módulos siguen la misma cadena, sin saltarse eslabones:
 
-- `routes`: define endpoints y middlewares por modulo
-- `controller`: traduce request/response
-- `service`: reglas de negocio
-- `repository`: acceso SQL
-- `shared`: infraestructura comun
+```
+routes → controller → service → repository → db
+```
 
-`auth` y `projects` ya siguen esa convencion. `media` y `sections` aun son huecos estructurales.
+- **routes** — endpoints y middleware. Nada más
+- **controller** — lee la request, responde, `next(error)` en el catch
+- **service** — todas las reglas de negocio. Lanza errores de dominio
+- **repository** — SQL con `pool.query`. Único lugar que habla con la base
 
-### Montaje real de la API
+Un controller nunca importa el repository. Un repository nunca lanza errores de
+dominio.
 
-En [backend/src/app.js](../../backend/src/app.js):
+**`shared/validators/` no existe como concepto vivo.** La validación acabó
+viviendo en el `*.schemas.js` de cada módulo, junto a lo que valida. Si esa
+carpeta sigue en tu disco, está vacía y se puede borrar.
 
-- `GET /`
-- `app.use("/auth", authRoutes)`
-- `app.use("/admin/projects", authMiddleware, projectsRoutes)`
-- `404` inline
-- `errorMiddleware` al final
+### Montaje de la API
 
-Eso significa que el corte actual del backend es:
+En [backend/src/app.js](../../backend/src/app.js), en este orden:
 
-- auth admin funcional
-- CRUD admin de proyectos funcional
-- nada mas montado hacia fuera
+```js
+app.use(express.json())
+app.get("/")                                        // healthcheck simple
+app.use(cors({ origin: allowedOrigins }))           // lista separada por comas
+app.get("/health")                                  // + SELECT 1 contra la base
+app.use("/auth", authRoutes)
+app.use("/admin/projects", authMiddleware, projectSectionsRouter)
+app.use("/admin/projects", authMiddleware, projectsRoutes)
+app.use("/admin/sections", authMiddleware, sectionsRouter)
+app.use("/admin/media",    authMiddleware, mediaRoutes)
+app.use("/projects", projectsPublicRoutes)          // sin token
+app.use(404 inline)
+app.use(errorMiddleware)
+```
+
+Todo lo que cuelga de `/admin` pasa por `authMiddleware` en el montaje, no
+dentro de cada router. Las rutas públicas van después y sin token.
+
+`errorMiddleware` necesita los cuatro parámetros `(err, req, res, next)` o
+Express no lo reconoce como manejador de error. Además traduce los errores de
+multer a `ValidationError`, para que un archivo demasiado grande responda `400`
+y no `500`.
 
 ## Frontend
 
@@ -90,139 +94,130 @@ Eso significa que el corte actual del backend es:
 
 ```text
 frontend/
-|-- package.json
-|-- eslint.config.js
-|-- tsconfig.json
-|-- tsconfig.app.json
-|-- tsconfig.node.json
-|-- vite.config.ts
-|-- public/
-|   |-- favicon.svg
-|   `-- icons.svg
-`-- src/
-    |-- App.tsx
-    |-- App.css
-    |-- index.css
-    |-- main.tsx
-    |-- app/
-    |   |-- admin/
-    |   |   |-- auth/
-    |   |   |   |-- auth.context.ts
-    |   |   |   |-- AuthProvider.tsx
-    |   |   |   |-- useAuth.ts
-    |   |   |   |-- ProtectedRoute.tsx
-    |   |   |   `-- GuestRoute.tsx
-    |   |   |-- layout/
-    |   |   |   `-- AdminLayout.tsx
-    |   |   |-- pages/
-    |   |   |   |-- LoginPage.tsx
-    |   |   |   `-- DashboardPage.tsx
-    |   |   `-- routes.tsx
-    |   `-- public/
-    |       |-- layout/
-    |       |-- pages/
-    |       `-- routes.tsx
-    |-- components/
-    |   |-- admin/
-    |   |-- blocks/
-    |   |-- shared/
-    |   `-- ui/
-    |-- services/
-    |   |-- apiClient.ts
-    |   |-- auth.service.ts
-    |   `-- token.storage.ts
-    |-- styles/
-    |-- types/
-    |   `-- auth.ts
-    `-- assets/
+├── vercel.json                # reescritura de rutas para una SPA
+├── vite.config.ts
+└── src/
+    ├── App.tsx
+    ├── main.tsx               # importa Be Vietnam Pro
+    ├── index.css              # @theme con los tokens
+    ├── app/
+    │   ├── admin/
+    │   │   ├── auth/          # AuthProvider, useAuth, ProtectedRoute, GuestRoute
+    │   │   ├── layout/        # AdminLayout
+    │   │   ├── pages/         # Login, Dashboard, Projects, ProjectForm, ProjectImages
+    │   │   └── routes.tsx
+    │   └── public/
+    │       ├── layout/        # PublicLayout, importa Yeseva One
+    │       ├── pages/         # HomePage, ProjectPage
+    │       └── routes.tsx
+    ├── components/ui/         # Button, Input, Textarea, Select, Card, Cover, ImageUpload
+    ├── lib/                   # cn, contrast
+    ├── services/              # apiClient, token.storage y uno por feature
+    ├── styles/components.css  # clases semanticas con @apply
+    └── types/                 # auth, project, media, section
 ```
 
-### Montaje real de la app
+`components/admin/`, `components/blocks/` y `components/shared/` se planearon al
+principio y nunca se usaron: **todo lo compartido acabó en `components/ui/`**.
+Si esas carpetas siguen en tu disco, están vacías y se pueden borrar.
 
-[frontend/src/App.tsx](../../frontend/src/App.tsx) monta `BrowserRouter` -> `AuthProvider` -> `Routes`, y delega los arboles de rutas a `app/admin/routes.tsx` y `app/public/routes.tsx`.
+### Rutas
 
-Rutas actuales:
+| Ruta | Guard | Pantalla |
+| --- | --- | --- |
+| `/` | — | Feed público |
+| `/proyectos/:slug` | — | Página de proyecto |
+| `/admin/login` | `GuestRoute` | Login |
+| `/admin` | `ProtectedRoute` | Dashboard |
+| `/admin/projects` | `ProtectedRoute` | Listado |
+| `/admin/projects/new` | `ProtectedRoute` | Alta |
+| `/admin/projects/:id/edit` | `ProtectedRoute` | Edición |
+| `/admin/projects/:id/imagenes` | `ProtectedRoute` | Galería |
 
-- `/` -> `PublicLayout` + `HomePage`
-- `/admin/login` -> `GuestRoute` + `LoginPage`
-- `/admin` -> `ProtectedRoute` + `AdminLayout` + `DashboardPage`
+La galería vive en pantalla aparte del formulario a propósito: el formulario
+guarda al presionar un botón y la galería guarda en cada acción. Mezclar dos
+modelos de guardado en una pantalla confunde.
 
-### Arquitectura de sesion admin
+### Sesión admin
 
-La sesion vive en un unico provider, no dispersa en cada pagina:
+La sesión vive en un solo provider, no dispersa en cada página:
 
 ```
-AuthProvider (estado: loading | authenticated | anonymous)
-  |-- al montar: si hay token -> GET /auth/me -> confirma usuario real
-  |-- escucha el evento `auth:unauthorized` -> cierra sesion sola
-  `-- expone { user, status, isAuthenticated, login, logout } via useAuth()
+AuthProvider (loading | authenticated | anonymous)
+  ├── al montar: si hay token → GET /auth/me → confirma usuario real
+  ├── escucha `auth:unauthorized` → cierra sesion sola
+  └── expone { user, status, isAuthenticated, login, logout } via useAuth()
 ```
 
-Decisiones que sostienen esto:
+- el token vive en `localStorage` bajo `mitzuri.token`, encapsulado en
+  `services/token.storage.ts`. Ningún otro archivo toca `localStorage`
+- el estado `loading` existe para no expulsar al usuario en cada recarga antes
+  de saber si su token sirve
+- la verdad de la sesión la da el backend, no el token guardado: un token válido
+  de una usuaria desactivada no autentica, porque `getMe` revisa `is_active`
+- `apiClient` emite `auth:unauthorized` ante un `401`, así el vencimiento del JWT
+  cierra la sesión sin que cada pantalla lo maneje
+- el contexto vive en `auth.context.ts`, separado del provider, para no romper
+  Fast Refresh
 
-- el token se guarda en `localStorage` bajo la clave `mitzuri.token`, encapsulada en
-  [frontend/src/services/token.storage.ts](../../frontend/src/services/token.storage.ts); ningun otro archivo toca `localStorage` directo
-- el estado `loading` existe para no expulsar al usuario en cada recarga antes de saber si su token sirve
-- la verdad de la sesion la da el backend (`/auth/me`), no el token guardado: un token valido de un usuario desactivado no autentica
-- `apiClient` lanza `ApiError` con `status` y emite `auth:unauthorized` ante un `401`, de forma que el vencimiento del JWT cierra la sesion sin que cada pantalla lo maneje
-- el contexto vive en `auth.context.ts` separado del provider para no romper Fast Refresh
+Consecuencia: una pantalla admin nueva no necesita lógica de auth. Basta
+colgarla bajo `ProtectedRoute` y leer `useAuth()` si necesita a la usuaria.
 
-Consecuencia arquitectonica: cualquier pantalla admin nueva no necesita logica de auth. Basta colgarla bajo `ProtectedRoute` y leer `useAuth()` si necesita el usuario.
+### Capa HTTP
 
-### Piezas ya decididas de facto
+Todo pasa por `services/apiClient.ts`. Nunca `fetch` directo en un componente.
 
-- `react-router-dom` para navegacion
-- `fetch` nativo envuelto en `apiClient`
-- `localStorage` para guardar JWT, aislado en `token.storage.ts`
-- estructura por `app/admin` y `app/public`
-- guard de rutas privadas con `ProtectedRoute` / `GuestRoute`
-- Tailwind 4 con clases de componente en `src/styles/components.css`
+- lanza `ApiError` con `status`
+- si el cuerpo es `FormData`, **no** fija `Content-Type`: lo escribe el
+  navegador, porque incluye el `boundary` que separa las partes del multipart
+- un servicio por feature, con `BASE_PATH` como constante arriba
 
-### Piezas aun no cerradas
-
-- servicios por feature fuera de auth
-- tipos de dominio mas alla de `auth.ts`
-- renderer de bloques narrativos
-- pantallas admin de proyectos
-- frontend publico real
+**Fragilidad conocida:** cuando la respuesta no es JSON, `apiClient` devuelve
+vacío en silencio en vez de lanzar un error. Combinado con la reescritura de
+rutas de `vercel.json` —que hace que cualquier ruta desconocida responda `200`
+con HTML— eso convierte una URL mal configurada en una pantalla en blanco sin
+pistas. Ya pasó una vez durante el deploy.
 
 ## Base de datos
 
-### Estrategia actual
-
 - SQL manual versionado en `backend/sql/`
-- runner propio en [backend/scripts/migrate.js](../../backend/scripts/migrate.js)
-- deteccion de migraciones editadas por checksum
+- runner propio en `backend/scripts/migrate.js`, que registra cada archivo en
+  `schema_migrations` con checksum
+- una migración ya aplicada no se repite, y un archivo modificado después de
+  aplicarse se detecta como error
 - sin ORM
 
-### Fuente de verdad
-
-La fuente de verdad del schema sigue siendo:
-
-- `backend/sql/*.sql`
-- `schema_migrations`
-- `backend/scripts/migrate.js`
+En producción las migraciones corren solas: el script `start` del backend es
+`node scripts/migrate.js && node src/server.js`.
 
 ## Storage de media
 
-La arquitectura ya apunta a storage externo:
+```
+navegador → POST /admin/media (multipart) → backend
+                                              ├→ valida mime y tamano
+                                              ├→ lee ancho y alto del buffer
+                                              ├→ sube a R2 con PutObject
+                                              └→ INSERT en media_assets
+```
 
-- cliente S3 hacia `Cloudflare R2`
-- metadata en `media_assets`
+El archivo nunca toca disco: `multer` con `memoryStorage` lo deja en memoria y
+de ahí va directo a R2. La clave es `media/{uuid}.{ext}`, con la extensión
+derivada del mime y no del nombre que manda el cliente.
 
-Pero hoy faltan:
+La lectura no pasa por el backend: `R2_PUBLIC_BASE_URL` apunta a
+`cdn.mitzuri.com`, que sirve el bucket directamente.
 
-- endpoint de subida
-- asociacion real con proyectos y secciones
-- naming strategy
-- optimizacion y derivados
+**Límites aceptados a propósito**, dado el volumen del proyecto: subir una
+imagen y no guardar deja el archivo huérfano, reemplazar una portada no borra la
+anterior, y borrar un proyecto no borra sus archivos.
 
-## Implicacion arquitectonica para el siguiente paso
+## Producción
 
-El repo ya no necesita otra ronda de "estructura vacia". Necesita cerrar un slice vertical pequeno y util. Arquitectonicamente, el siguiente corte natural es:
+| Pieza | Servicio |
+| --- | --- |
+| Frontend | Vercel |
+| API | Render, mismo región que la base |
+| Base | Neon, Postgres 18 |
+| Imágenes | Cloudflare R2 |
 
-`auth estable -> shell admin -> proyectos en UI -> base visual reusable`
-
-Actualizacion `2026-07-27`: los dos primeros tramos ya estan cerrados. El corte siguiente es `projects.service.ts` en frontend + pantalla de listado de proyectos bajo `ProtectedRoute`.
-
-Por eso Tailwind tiene sentido ahora solo si entra como soporte de ese slice, no como tarea aislada de cosmetica.
+Detalles de configuración y sus trampas: [docs/specs/08_deploy.md](../specs/08_deploy.md).

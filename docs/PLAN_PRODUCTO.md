@@ -1,33 +1,18 @@
-# MITZURI - Resumen de producto
+# MITZURI — Resumen de producto
 
-Este archivo es una vista corta del producto. El detalle funcional ya vive en `docs/producto/`.
+Este archivo se vació el `2026-08-23`.
 
-## Que leer primero
+Existía como puerta de entrada funcional, pero repetía lo que ya dicen el índice
+y los documentos que enlazaba. Tres documentos diciendo lo mismo terminan
+contradiciéndose entre ellos.
 
-- Vision general: [docs/producto/00_VISION.md](producto/00_VISION.md)
-- Alcance v1: [docs/producto/01_ALCANCE_V1.md](producto/01_ALCANCE_V1.md)
-- Experiencia publica: [docs/producto/02_EXPERIENCIA_PUBLICA.md](producto/02_EXPERIENCIA_PUBLICA.md)
-- Experiencia admin: [docs/producto/03_EXPERIENCIA_ADMIN.md](producto/03_EXPERIENCIA_ADMIN.md)
-- Reglas funcionales: [docs/producto/04_REGLAS_FUNCIONALES.md](producto/04_REGLAS_FUNCIONALES.md)
+**El índice único es [PLAN.md](PLAN.md).**
 
----
+Si buscabas algo de producto en concreto:
 
-## Resumen rapido
-
-`Mitzuri` sera una plataforma con dos caras:
-
-- sitio publico para mostrar proyectos publicados
-- CMS privado para una sola administradora: la disenadora
-
-La v1 sera exitosa cuando la disenadora pueda:
-
-- iniciar sesion
-- crear proyectos `draft`
-- editarlos por bloques narrativos
-- generar una preview privada
-- publicar
-- compartir la URL publica final
-
-La regla editorial principal se mantiene:
-
-> El sistema debe dar libertad para construir historias visuales, pero el orden de los bloques es parte central del producto.
+- **para quién y para qué existe** → [producto/00_VISION.md](producto/00_VISION.md)
+- **qué entró en la v1** → [producto/01_ALCANCE_V1.md](producto/01_ALCANCE_V1.md)
+- **qué ve una visitante** → [producto/02_EXPERIENCIA_PUBLICA.md](producto/02_EXPERIENCIA_PUBLICA.md)
+- **qué puede hacer la diseñadora** → [producto/03_EXPERIENCIA_ADMIN.md](producto/03_EXPERIENCIA_ADMIN.md)
+- **reglas de publicación, URLs y SEO** → [producto/04_REGLAS_FUNCIONALES.md](producto/04_REGLAS_FUNCIONALES.md)
+- **identidad visual y feed** → [producto/05_IDENTIDAD_Y_FEED.md](producto/05_IDENTIDAD_Y_FEED.md)

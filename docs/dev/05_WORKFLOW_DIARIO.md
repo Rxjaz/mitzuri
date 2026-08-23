@@ -1,28 +1,26 @@
 # Workflow diario
 
-## Orden recomendado para trabajar
+Cómo se levanta el proyecto y qué se verifica antes de dar algo por terminado.
+El método de trabajo con specs y auditorías está en
+[08_COMO_TRABAJAMOS.md](08_COMO_TRABAJAMOS.md).
 
-1. Elegir una sola tarea activa.
-2. Revisar [docs/dev/04_FASES.md](04_FASES.md) para no mezclar prioridades.
-3. Si la tarea toca schema, crear una migracion nueva en `backend/sql/`.
-4. Levantar PostgreSQL local.
-5. Ejecutar migraciones.
-6. Si hace falta admin local, correr el seed.
-7. Cerrar backend primero cuando el contrato todavia no existe.
-8. Cerrar frontend despues de cerrar contrato y respuesta esperada.
-9. Verificar `lint` y, si aplica, `build`.
-10. Actualizar docs cuando el comportamiento exista de verdad.
-
-## Comandos base
+## Levantar el entorno local
 
 ```bash
-docker compose up -d db
-npm run db:migrate
-npm run db:seed
-npm run dev
+docker compose up -d          # PostgreSQL 18
+npm run db:migrate            # aplica lo pendiente
+npm run db:seed               # crea o actualiza la admin local
+npm run dev                   # backend y frontend en paralelo
 ```
 
-## Verificaciones utiles
+Backend en `http://localhost:3000`, frontend en `http://localhost:5173`.
+
+La primera vez que Postgres arranca con un volumen nuevo, tarda unos segundos en
+inicializar y **rechaza conexiones mientras tanto**. Si `db:migrate` responde
+`ECONNREFUSED` justo después de levantar el contenedor, espera a ver
+`database system is ready to accept connections` en `docker compose logs db`.
+
+## Verificaciones antes de cerrar un cambio
 
 ```bash
 npm run lint --prefix backend
@@ -30,43 +28,72 @@ npm run lint --prefix frontend
 npm run build --prefix frontend
 ```
 
-## Regla central de prioridad
+Lint del paquete que tocaste, y build del frontend si tocaste frontend.
 
-Con el repo como esta hoy, la prioridad ya no debe ser abrir nuevos modulos paralelos. La prioridad debe ser cerrar un slice vertical chico y util:
+Y una comprobación que ninguna herramienta hace por ti:
 
-1. auth admin confiable
-2. shell admin
-3. listado de proyectos
-4. formulario base de proyecto
-5. estilo base reutilizable
+```bash
+grep -rE "stone-|slate-|gray-|zinc-" frontend/src
+```
 
-Si una tarea no empuja uno de esos cinco puntos, probablemente no sea lo mas estrategico ahorita.
+Tiene que salir vacío. Los colores literales de Tailwind están prohibidos: solo
+tokens del `@theme`.
 
-## Orden recomendado de lo siguiente
+## Orden dentro de una tarea
 
-1. Endurecer el flujo admin actual.
-2. Instalar Tailwind y definir la base visual del admin.
-3. Conectar `projects` al frontend.
-4. Cerrar alta, listado y edicion minima de proyectos.
-5. Pasar a `media`.
-6. Pasar a `sections`.
-7. Implementar preview privada.
-8. Construir sitio publico final.
+1. Una sola tarea activa. No abrir módulos en paralelo
+2. Si toca el schema, la migración va primero y como archivo nuevo
+3. Backend antes que frontend: el contrato de API se cierra primero
+4. Lint, y build si aplica
+5. Probar en el navegador lo que solo se puede probar ahí
+6. Commit, con la spec ya commiteada aparte y antes
 
-## Por que Tailwind entra aqui y no despues
+## Qué solo puedes verificar tú
 
-Hoy el frontend todavia tiene muy poca superficie real:
+Un asistente puede leer el repositorio, correr lint y `tsc`, y auditar un diff.
+No puede correr migraciones contra una base, abrir un navegador, ni entrar a
+Render, Vercel, Neon o Cloudflare.
 
-- una `LoginPage`
-- un placeholder para `/admin`
-- servicios base
+Así que después de cada cambio con superficie visible, la parte que importa es
+tuya: abrir la pantalla, hacer el flujo completo, y mirar si algo se ve mal.
 
-Eso vuelve barato el cambio de estrategia visual. Meter Tailwind despues de haber construido dashboard, tabla, formularios y editor costaria mas. Meterlo ahora permite construir componentes reutilizables una sola vez.
+## Diagnosticar producción
 
-## Cuando abrir cada documento
+La primera parada siempre es la misma:
 
-- Si vas a cambiar schema o endpoints: [docs/dev/02_DATOS_Y_API.md](02_DATOS_Y_API.md)
-- Si vas a tocar arquitectura o carpetas: [docs/dev/01_ARQUITECTURA.md](01_ARQUITECTURA.md)
-- Si vas a priorizar trabajo: [docs/dev/04_FASES.md](04_FASES.md)
-- Si vas a revisar stack o dependencias: [docs/STACK.md](../STACK.md)
-- Si vas a decidir la estrategia visual y Tailwind: [docs/dev/06_FRONTEND_Y_TAILWIND.md](06_FRONTEND_Y_TAILWIND.md)
+```
+https://api.mitzuri.com/health
+```
+
+- `{"status":"ok","database":"ok"}` → el backend y la base están bien, el
+  problema está más arriba
+- `database: "error"` → la conexión a Neon
+- no responde → el servicio no levantó, o el dominio no resuelve. Probar con la
+  URL directa de Render descarta el DNS
+
+Si el sitio carga pero no trae datos, abre la consola del navegador:
+
+- **errores de CORS** → el origen exacto que aparece en el mensaje no está en
+  `FRONTEND_URL` del backend
+- **peticiones a `undefined/...`** → `VITE_API_BASE_URL` no llegó a la
+  compilación. Redesplegar en Vercel **sin caché**
+- **primera carga de 40 segundos** → el backend despertando. No es un fallo
+
+## Comandos de referencia
+
+| Comando | Qué hace |
+| --- | --- |
+| `npm run dev` | backend y frontend en paralelo |
+| `npm run db:migrate` | aplica migraciones pendientes |
+| `npm run db:seed` | crea o actualiza la admin |
+| `npm run lint --prefix <paquete>` | lint |
+| `npm run build --prefix frontend` | `tsc -b` más build de Vite |
+
+Para correr un script contra otra base, sin tocar tu `.env`:
+
+```bash
+node --env-file=.env.production backend/scripts/migrate.js
+```
+
+Borra ese archivo al terminar. Está cubierto por el `.gitignore`, pero no tiene
+por qué quedarse en disco.

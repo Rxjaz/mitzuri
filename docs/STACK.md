@@ -1,17 +1,21 @@
 # MITZURI - Stack real del proyecto
 
-Documento basado en inspeccion real del repo el `2026-08-19`.
+Documento basado en inspeccion real del repo el `2026-08-23`.
 
 ## Vista general
 
-`Mitzuri` es hoy un monorepo pequeno con:
+`Mitzuri` es un monorepo pequeno, en produccion, con:
 
 - backend en `JavaScript ESM` sobre `Node.js`
 - frontend en `React + TypeScript` con `Vite`
 - ruteo frontend con `react-router-dom`
-- base de datos `PostgreSQL`
+- base de datos `PostgreSQL`, local por Docker y en la nube por Neon
+- media en `Cloudflare R2`
 - orquestacion local con `Docker Compose`
 - scripts de desarrollo en el `package.json` raiz
+
+No hay workspaces de npm: cada paquete instala aparte y la raiz orquesta con
+`--prefix`.
 
 ---
 
@@ -125,16 +129,14 @@ Tipografias, self-hosted:
 
 Motor detectado:
 
-- `PostgreSQL 15` en `docker-compose.yml`
+- `PostgreSQL 18` en `docker-compose.yml` para local
+- `PostgreSQL 18` en Neon para produccion
 
-Schema gestionado por migraciones SQL versionadas:
+Las dos versiones coinciden a proposito. Desde la 18, la imagen oficial de
+Docker monta el volumen en `/var/lib/postgresql` y no en `/data`.
 
-- `backend/sql/001_extensions.sql`
-- `backend/sql/002_users.sql`
-- `backend/sql/003_projects.sql`
-- `backend/sql/004_sections.sql`
-- `backend/sql/005_media_assets.sql`
-- `backend/sql/006_project_preview_tokens.sql`
+Schema gestionado por once migraciones SQL versionadas, de `001` a `011`.
+El detalle de cada una esta en [dev/02_DATOS_Y_API.md](dev/02_DATOS_Y_API.md).
 
 ---
 
@@ -162,19 +164,24 @@ Incluye:
 
 ### Estado actual de calidad
 
-Verificado el `2026-05-28`:
+Verificado el `2026-08-23`:
 
 - `npm run lint --prefix backend`: pasa
 - `npm run lint --prefix frontend`: pasa
 - `npm run build --prefix frontend`: pasa
+- `grep -rE "stone-|slate-|gray-|zinc-" frontend/src`: sin resultados
 
-No se detecto:
+No existe:
 
 - `Prettier`
 - framework de tests
 - `husky`
 - `lint-staged`
-- CI visible dentro del repo
+- CI
+
+**La ausencia de tests es la deuda tecnica principal del proyecto.** Fue una
+decision consciente mientras cada cambio pasaba por una spec con criterios de
+aceptacion y una auditoria del diff. Con contenido real cargado, deja de serlo.
 
 ---
 
@@ -199,42 +206,65 @@ Variables usadas hoy en el codigo:
 - `CLOUDFLARE_ACCOUNT_ID`
 - `CLOUDFLARE_ACCESS_KEY_ID`
 - `CLOUDFLARE_SECRET_ACCESS_KEY`
+- `R2_BUCKET`
+- `R2_PUBLIC_BASE_URL`
 
-Variables mencionadas en `docker-compose.yml` o comentarios:
+En `docker-compose.yml`:
 
-- `POSTGRES_USER`
-- `POSTGRES_PASSWORD`
-- `POSTGRES_DB`
-- `PREVIEW_TOKEN_SECRET`
+- `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`
+
+En el frontend, con prefijo obligatorio `VITE_`:
+
 - `VITE_API_BASE_URL`
 
-Nota:
+Notas importantes:
 
-- `VITE_API_BASE_URL` se usa en frontend
-- `PREVIEW_TOKEN_SECRET` todavia no aparece usado en backend
+- **`FRONTEND_URL` admite varios origenes separados por comas.** En produccion
+  lleva el dominio con y sin `www`; si falta el que usa el navegador, CORS
+  bloquea todo sin dejar rastro en el servidor
+- **Todo lo que lleva prefijo `VITE_` es publico.** Vite lo incrusta en el
+  JavaScript que descarga cada visitante, y se lee al **construir**, no al
+  ejecutar: cambiarlo obliga a volver a desplegar. Ahi nunca va un secreto
+- **`PREVIEW_TOKEN_SECRET` esta declarado y nunca se usa.** La preview por token
+  se cancelo; ver [dev/04_FASES.md](dev/04_FASES.md)
 
 ---
 
-## Lectura tecnica del momento actual
+## Decisiones de stack, ya cerradas
 
-Lo que ya esta decidido de facto:
-
-- backend en `JavaScript`, no en `TypeScript`
+- backend en `JavaScript` con ESM, no en `TypeScript`
 - frontend en `TypeScript`
 - `Express` en lugar de `Fastify` o `Nest`
 - `pg` y SQL manual en lugar de `Prisma`, `Drizzle` o `TypeORM`
-- `Zod` como validador
-- JWT para auth admin
-- `Cloudflare R2` planeado para media
-- `React Router` como base de navegacion
+- `Zod` como validador, en el backend
+- JWT en `localStorage` para la sesion admin, sin refresh token
+- `Cloudflare R2` para media, con subida a traves del backend
+- `React Router` para navegacion
+- `Tailwind 4` con tokens propios en `@theme`, sin libreria de componentes
+- tipografias self-hosted con `@fontsource`
 
-Lo que aun no esta montado aunque el stack ya lo sugiere:
+## Infraestructura de produccion
 
-- Tailwind
-- guardas de auth frontend
-- servicios frontend por feature fuera de auth
-- uploads reales a R2
-- preview privada
-- frontend publico real
+| Pieza | Servicio | Plan |
+| --- | --- | --- |
+| Frontend | Vercel | Hobby |
+| API | Render, region Ohio | gratuito |
+| Base de datos | Neon, region Ohio | gratuito |
+| Imagenes | Cloudflare R2 | — |
+
+Render y Neon comparten region a proposito: cada carga de pagina son varias
+consultas del backend a la base.
+
+Dos limitaciones de los planes gratuitos, documentadas en
+[dev/00_ESTADO_ACTUAL.md](dev/00_ESTADO_ACTUAL.md):
+
+- el servicio de Render **duerme** tras 15 minutos sin trafico
+- el plan Hobby de Vercel es **solo para uso no comercial**
+
+## Lo que el stack sugiere y no esta montado
+
 - tests
-- pipeline formal de deploy
+- CI
+- derivados optimizados de imagen
+- Open Graph
+- observabilidad mas alla de `/health`

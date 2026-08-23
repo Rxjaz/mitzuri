@@ -1,20 +1,27 @@
 # Mitzuri
 
-Plataforma web para publicar y administrar proyectos: un sitio público que muestra el trabajo, y un panel de administración privado donde se crea, edita y publica ese contenido.
+Portafolio de una diseñadora, con dos caras: un sitio público que muestra su
+trabajo y un CMS privado donde ella lo crea, lo ordena y lo publica sin depender
+de nadie.
 
-Monorepo con backend en Node/Express, frontend en React + TypeScript y PostgreSQL como base de datos.
+Monorepo con backend en Node/Express, frontend en React + TypeScript,
+PostgreSQL y almacenamiento de imágenes en Cloudflare R2.
+
+**En producción desde agosto de 2026.**
 
 ---
 
 ## Stack
 
-| Capa       | Tecnologías                                                     |
-| ---------- | --------------------------------------------------------------- |
-| Backend    | Node.js, Express 5, PostgreSQL (`pg`), Zod, JWT, bcrypt          |
-| Frontend   | React 19, TypeScript, Vite, React Router, Tailwind CSS 4         |
-| Base datos | PostgreSQL 15 (Docker Compose), migraciones SQL versionadas      |
-| Media      | Cloudflare R2 vía SDK de S3                                      |
-| Tooling    | ESLint, nodemon, concurrently                                    |
+| Capa | Tecnologías |
+| --- | --- |
+| Backend | Node.js, Express 5, PostgreSQL (`pg`), Zod 4, JWT, bcrypt, multer |
+| Frontend | React 19, TypeScript, Vite, React Router 7, Tailwind CSS 4 |
+| Base de datos | PostgreSQL 18, migraciones SQL versionadas con checksum |
+| Media | Cloudflare R2 vía SDK de S3, servido por dominio propio |
+| Tooling | ESLint, nodemon, concurrently |
+
+Sin ORM, sin librería de componentes, sin framework de CSS más allá de Tailwind.
 
 ---
 
@@ -24,39 +31,40 @@ Monorepo con backend en Node/Express, frontend en React + TypeScript y PostgreSQ
 Mitzuri/
 ├── backend/
 │   ├── src/
-│   │   ├── modules/          # auth, projects (routes → controller → service → repository)
+│   │   ├── modules/          # auth, projects, media, sections
 │   │   ├── shared/           # db, middleware, errors, storage, utils
 │   │   ├── app.js
 │   │   └── server.js
-│   ├── sql/                  # migraciones versionadas
+│   ├── sql/                  # 11 migraciones versionadas
 │   └── scripts/              # migrate, seed
 ├── frontend/
 │   └── src/
-│       ├── app/
-│       │   ├── admin/        # panel privado: auth, layout, páginas, rutas
-│       │   └── public/       # sitio público
-│       ├── components/       # ui compartida
-│       ├── services/         # apiClient y servicios por feature
+│       ├── app/admin/        # panel privado
+│       ├── app/public/       # sitio público
+│       ├── components/ui/    # componentes compartidos
+│       ├── services/         # apiClient y uno por feature
 │       └── types/
+├── docs/                     # documentación del producto y del proceso
 └── docker-compose.yml
 ```
 
-Cada módulo del backend sigue la misma cadena de responsabilidades:
+Cada módulo del backend sigue la misma cadena de responsabilidades, sin saltarse
+eslabones:
 
 ```
 routes → controller → service → repository → db
 ```
 
-- **routes**: define endpoints y aplica middleware (validación, auth)
-- **controller**: lee la request y responde; no tiene lógica de negocio
-- **service**: reglas de negocio
-- **repository**: acceso a la base de datos
+- **routes** — endpoints y middleware
+- **controller** — lee la request y responde; sin lógica de negocio
+- **service** — todas las reglas de negocio
+- **repository** — único lugar que habla con la base
 
 ---
 
 ## Puesta en marcha
 
-Requisitos: Node.js 22+, Docker (para PostgreSQL).
+Requisitos: Node.js 22+, Docker.
 
 ```bash
 # 1. dependencias
@@ -65,28 +73,25 @@ npm install --prefix backend
 npm install --prefix frontend
 
 # 2. variables de entorno
-cp .env.example .env                    # backend + docker
-cp frontend/.env.example frontend/.env  # frontend
-# completar los valores en ambos
+cp .env.example .env
+cp frontend/.env.example frontend/.env
 
 # 3. base de datos
 docker compose up -d
 npm run db:migrate
-npm run db:seed            # crea el usuario admin inicial
+npm run db:seed
 
-# 4. desarrollo (backend + frontend en paralelo)
+# 4. desarrollo
 npm run dev
 ```
 
-Por defecto el backend queda en `http://localhost:3000` y el frontend en `http://localhost:5173`.
+Backend en `http://localhost:3000`, frontend en `http://localhost:5173`.
 
-### Scripts
-
-| Comando              | Qué hace                                       |
-| -------------------- | ---------------------------------------------- |
-| `npm run dev`        | Levanta backend y frontend a la vez            |
-| `npm run db:migrate` | Aplica las migraciones SQL pendientes          |
-| `npm run db:seed`    | Crea/actualiza el usuario admin de desarrollo  |
+| Comando | Qué hace |
+| --- | --- |
+| `npm run dev` | backend y frontend en paralelo |
+| `npm run db:migrate` | aplica las migraciones pendientes |
+| `npm run db:seed` | crea o actualiza la usuaria administradora |
 
 Dentro de cada paquete: `npm run lint`, y en `frontend/` también `npm run build`.
 
@@ -94,47 +99,42 @@ Dentro de cada paquete: `npm run lint`, y en `frontend/` también `npm run build
 
 ## Variables de entorno
 
-El `.env` de la raíz alimenta al backend y a Docker Compose. El frontend usa su propio `frontend/.env`, porque Vite solo expone al navegador las variables con prefijo `VITE_`.
+El `.env` de la raíz alimenta al backend y a Docker Compose. El frontend usa su
+propio `frontend/.env`, porque Vite solo expone al navegador las variables con
+prefijo `VITE_`.
 
-**Raíz** — ver [`.env.example`](.env.example):
-
-| Variable                  | Para qué sirve                                  |
-| ------------------------- | ----------------------------------------------- |
-| `PORT`, `NODE_ENV`        | Servidor                                        |
-| `DB_*` / `DATABASE_URL`   | Conexión a PostgreSQL                           |
-| `POSTGRES_*`              | Contenedor de PostgreSQL                        |
-| `JWT_SECRET`              | Firma de los tokens de sesión                   |
-| `PREVIEW_TOKEN_SECRET`    | Tokens de preview privada                       |
-| `ADMIN_*`                 | Usuario admin creado por el seed                |
-| `CLOUDFLARE_*`, `R2_*`    | Storage de media                                |
-| `FRONTEND_URL`            | Origen permitido por CORS                       |
-
-**Frontend** — ver [`frontend/.env.example`](frontend/.env.example):
-
-| Variable                  | Para qué sirve                                  |
-| ------------------------- | ----------------------------------------------- |
-| `VITE_API_BASE_URL`       | URL del API que consume el frontend             |
+| Variable | Para qué sirve |
+| --- | --- |
+| `PORT`, `NODE_ENV` | Servidor |
+| `DATABASE_URL` o `DB_*` | Conexión a PostgreSQL |
+| `POSTGRES_*` | Contenedor de PostgreSQL |
+| `JWT_SECRET` | Firma de los tokens de sesión |
+| `ADMIN_*` | Usuaria creada por el seed |
+| `CLOUDFLARE_*`, `R2_BUCKET` | Credenciales de R2 |
+| `R2_PUBLIC_BASE_URL` | Dominio desde el que se sirven las imágenes |
+| `FRONTEND_URL` | Orígenes permitidos por CORS, separados por comas |
+| `VITE_API_BASE_URL` | URL del API que consume el frontend |
 
 ---
 
-## Autenticación
+## Modelo de publicación
 
-El panel de administración usa sesión por JWT.
+Un proyecto tiene tres estados:
 
-```
-POST /auth/login   → { user, token }   valida credenciales con bcrypt y firma un JWT
-GET  /auth/me      → user              devuelve el usuario del token
-POST /auth/logout                      cierra la sesión del lado del cliente
-```
+| Estado | Visible en el feed | Accesible por URL |
+| --- | --- | --- |
+| `draft` | no | no |
+| `unlisted` | no | sí |
+| `published` | sí | sí |
 
-En el frontend, `AuthProvider` mantiene la sesión viva entre recargas:
+`unlisted` existe porque la diseñadora comparte trabajo terminado con clientes
+antes —o en lugar— de publicarlo. Su página se sirve con `noindex, nofollow`:
+sin eso, una URL compartida en privado acabaría en resultados de búsqueda.
 
-1. Al arrancar la app, si hay token guardado se valida contra `GET /auth/me`.
-2. Mientras se valida, el estado es `loading` y los guards no deciden nada — así una recarga no expulsa al usuario.
-3. Si el token es válido se pasa a `authenticated`; si no, se limpia y se pasa a `anonymous`.
-4. Si cualquier petición responde `401`, la sesión se cierra automáticamente.
-
-Rutas: `ProtectedRoute` protege `/admin` y recuerda a dónde iba el usuario para devolverlo ahí tras el login; `GuestRoute` evita mostrar el login a alguien que ya tiene sesión.
+Una regla que no se ve pero sostiene todo lo demás: **el `slug` lo deriva el
+backend desde el título y se congela en cuanto el proyecto sale de borrador, para
+siempre.** Volver a borrador no lo desbloquea. Una dirección que ya pudo
+compartirse no se recicla.
 
 ---
 
@@ -142,57 +142,119 @@ Rutas: `ProtectedRoute` protege `/admin` y recuerda a dónde iba el usuario para
 
 ### Público
 
-| Método | Ruta   | Descripción     |
-| ------ | ------ | --------------- |
-| `GET`  | `/`    | Healthcheck     |
+| Método | Ruta | Descripción |
+| --- | --- | --- |
+| `GET` | `/health` | Estado del servidor y de la base |
+| `GET` | `/projects` | Proyectos publicados, en orden editorial |
+| `GET` | `/projects/:slug` | Proyecto publicado o no listado, con sus imágenes |
+
+Un `draft` y un slug inexistente devuelven la misma respuesta, para que no se
+pueda averiguar qué borradores existen probando URLs.
 
 ### Auth
 
-| Método | Ruta            | Auth | Descripción                |
-| ------ | --------------- | ---- | -------------------------- |
-| `POST` | `/auth/login`   | No   | Inicia sesión              |
-| `GET`  | `/auth/me`      | Sí   | Usuario de la sesión       |
-| `POST` | `/auth/logout`  | Sí   | Cierra sesión              |
+| Método | Ruta | Auth |
+| --- | --- | --- |
+| `POST` | `/auth/login` | No |
+| `GET` | `/auth/me` | Sí |
+| `POST` | `/auth/logout` | Sí |
 
-### Proyectos (admin)
+### Admin
 
 Todas requieren `Authorization: Bearer <token>`.
 
-| Método   | Ruta                            | Descripción              |
-| -------- | ------------------------------- | ------------------------ |
-| `GET`    | `/admin/projects`               | Listar                   |
-| `POST`   | `/admin/projects`               | Crear                    |
-| `GET`    | `/admin/projects/:id`           | Detalle                  |
-| `PUT`    | `/admin/projects/:id`           | Actualizar               |
-| `DELETE` | `/admin/projects/:id`           | Eliminar                 |
-| `POST`   | `/admin/projects/:id/publish`   | Publicar                 |
-| `POST`   | `/admin/projects/:id/unpublish` | Despublicar              |
+| Método | Ruta |
+| --- | --- |
+| `GET` `POST` | `/admin/projects` |
+| `GET` `PUT` `DELETE` | `/admin/projects/:id` |
+| `POST` | `/admin/projects/:id/publish` · `/unlist` · `/unpublish` |
+| `GET` `POST` | `/admin/projects/:id/sections` |
+| `PUT` | `/admin/projects/:id/sections/reorder` |
+| `PUT` `DELETE` | `/admin/sections/:id` |
+| `POST` | `/admin/media` |
+| `PUT` | `/admin/media/:id` |
 
 ---
 
 ## Base de datos
 
-Las migraciones viven en `backend/sql/` y se aplican en orden por nombre de archivo. El runner registra cada una en la tabla `schema_migrations` con un checksum, así que una migración ya aplicada no se repite y un archivo modificado después de aplicarse se detecta como error.
+Migraciones numeradas en `backend/sql/`, aplicadas en orden. El runner registra
+cada una en `schema_migrations` con un checksum, así que una migración aplicada
+no se repite y un archivo modificado después de aplicarse se detecta como error.
 
-Tablas actuales: `users`, `projects`, `sections`, `media_assets`, `project_preview_tokens`.
+En producción corren solas: el script `start` es
+`node scripts/migrate.js && node src/server.js`.
 
-Para agregar una migración, crear el siguiente archivo numerado en `backend/sql/` y ejecutar `npm run db:migrate`.
+Tablas: `users`, `projects`, `sections`, `media_assets`.
+
+---
+
+## Autenticación
+
+Sesión por JWT, con una sola usuaria administradora.
+
+`AuthProvider` mantiene la sesión viva entre recargas:
+
+1. Al arrancar, si hay token guardado se valida contra `GET /auth/me`
+2. Mientras se valida el estado es `loading` y los guards no deciden nada, así
+   una recarga no expulsa a la usuaria
+3. Si el token es válido se pasa a `authenticated`; si no, se limpia
+4. Cualquier respuesta `401` cierra la sesión automáticamente
+
+La verdad de la sesión la da el backend, no el token guardado: `getMe` revisa
+`is_active`, así que desactivar una cuenta invalida sus tokens en la siguiente
+petición.
+
+---
+
+## Sistema visual
+
+Todo el color y la tipografía viven en el bloque `@theme` de `index.css`. **Está
+prohibido usar colores literales de Tailwind** en el código: solo tokens. Cambiar
+un hex cambia el sitio entero.
+
+Cada proyecto puede tener su color de acento, que dentro de su página sustituye
+al azul del sitio redefiniendo la variable CSS. El panel avisa si ese color tiene
+menos de 4.5:1 de contraste sobre blanco — avisa, no bloquea.
+
+Las tipografías son self-hosted. La display solo se carga en el sitio público y
+solo se usa a 24px o más: tiene un único peso, así que la jerarquía se hace con
+tamaño y espaciado.
 
 ---
 
 ## Estado del proyecto
 
-En desarrollo activo. Funcionando hoy:
+Funcionando en producción:
 
-- [x] Autenticación admin con JWT y sesión persistente
-- [x] Guards de rutas en el panel
-- [x] CRUD de proyectos con publish/unpublish
-- [x] Migraciones y seed
-- [ ] Módulos de secciones y media
-- [ ] Endpoints públicos de proyectos
-- [ ] Preview privada
-- [ ] Sitio público completo
+- [x] Autenticación admin con sesión persistente
+- [x] CRUD de proyectos con tres estados de publicación
+- [x] Subida de imágenes a R2 desde el panel
+- [x] Galería por proyecto, con reordenamiento
+- [x] Feed público en mosaico y página por `slug`
+- [x] Metadatos: categoría, herramientas, color de acento y créditos
+- [x] SEO básico y `noindex` en proyectos no listados
+- [x] Deploy con migraciones automáticas
+
+Pendiente:
+
 - [ ] Tests automatizados
+- [ ] Open Graph por proyecto
+- [ ] Derivados optimizados de imagen
+
+---
+
+## Documentación
+
+`docs/` no es opcional: es la fuente de verdad del producto y del proceso.
+
+- [`docs/PLAN.md`](docs/PLAN.md) — índice de toda la documentación
+- [`docs/dev/00_ESTADO_ACTUAL.md`](docs/dev/00_ESTADO_ACTUAL.md) — qué existe hoy y qué falta
+- [`docs/dev/08_COMO_TRABAJAMOS.md`](docs/dev/08_COMO_TRABAJAMOS.md) — el método de trabajo
+- [`docs/specs/`](docs/specs) — una spec por tarea, con su razonamiento y sus criterios de aceptación
+
+Las specs son el registro de **por qué** cada cosa está como está: qué problema
+resolvía, qué se descartó y con qué criterio se dio por terminada.
 
 ---
 

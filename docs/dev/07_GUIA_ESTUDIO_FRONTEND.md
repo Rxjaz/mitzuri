@@ -199,13 +199,47 @@ Ejemplo conceptual:
 
 ```css
 .panel-card {
-  @apply rounded-2xl border border-stone-200 bg-white p-8 shadow-sm;
+  @apply rounded-2xl border border-border bg-paper p-8 shadow-sm;
 }
 ```
 
 #### `@layer components`
 
 Zona recomendada para clases reutilizables de componente o bloque visual.
+
+#### `@theme` y los tokens
+
+Este es el concepto mas importante del sistema visual, y es propio de Tailwind 4.
+
+En `src/index.css` hay un bloque `@theme` donde viven los colores y las
+tipografias del proyecto:
+
+```css
+@theme {
+  --color-ink: #070707;
+  --color-brand: #0d30f2;
+  --font-display: "Yeseva One", Georgia, serif;
+}
+```
+
+Tailwind genera las utilidades a partir de ahi: `bg-brand`, `text-ink`,
+`font-display`. Existen porque los declaraste tu, no porque vengan de fabrica.
+
+**Regla dura del proyecto: prohibido usar colores literales de Tailwind.** Nada
+de `stone-900`, `blue-600` ni `gray-100`. Solo tokens.
+
+Por que importa: antes de tener tokens, cada componente traia el gris que
+alguien eligio sin decidirlo de verdad, y esa paleta accidental se heredaba de
+pantalla en pantalla. Con tokens, cambiar un hex cambia el sitio entero.
+
+Y como son variables CSS normales, se pueden redefinir en un subarbol. Asi
+funciona el color de acento de cada proyecto:
+
+```tsx
+<article style={{ "--color-brand": project.accent_color }}>
+```
+
+Todo lo que use `brand` dentro de ese `article` cambia solo.
 
 ### Arquitectura de estilos que quedo
 
@@ -306,34 +340,49 @@ Usala cuando el ajuste es pequeno y local.
 
 ## Orden de estudio recomendado
 
-1. leer `App.tsx`
-2. leer `admin/routes.tsx` y `public/routes.tsx`
-3. entender `AdminLayout` y `PublicLayout`
-4. leer `LoginPage`
-5. leer `Button`, `Input`, `Card`
-6. leer `components.css`
-7. volver a `HomePage` y `DashboardPage`
+De lo mas simple a lo mas enredado:
 
-## Ejercicio recomendado para practicar
+1. `index.css` — los tokens. Todo lo visual sale de ahi
+2. `App.tsx` y los dos `routes.tsx`
+3. `AdminLayout` y `PublicLayout`
+4. `Button`, `Input`, `Select` — los componentes base
+5. `components.css` — las clases semanticas
+6. `apiClient.ts` — como se habla con el backend
+7. `AuthProvider.tsx` — el estado de sesion. Es lo mas denso del frontend
+8. `HomePage.tsx` — el feed, con el reparto en columnas
+9. `ProjectImagesPage.tsx` — la pantalla mas completa: carga, sube, edita,
+   reordena y borra
 
-1. crear `ProjectsPage.tsx`
-2. agregar ruta `/admin/projects`
-3. reutilizar `AdminLayout`
-4. crear una clase semantica nueva para cabecera de pagina
-5. crear una tarjeta de proyecto con `Card`
-6. dejar solo utilidades cortas inline donde valga la pena
+## Ejercicios para practicar
+
+Con dificultad creciente, y los tres son cosas que el proyecto de verdad
+necesita:
+
+**Uno.** Agrega un token de color nuevo al `@theme` y usalo en un componente.
+Comprueba que aparece como utilidad sin configurar nada mas.
+
+**Dos.** El pie de pagina publico no tiene enlace al correo de contacto.
+Agregalo usando solo tokens y clases existentes.
+
+**Tres.** En `ProjectImagesPage`, si borras el texto alternativo y sales del
+campo, sale el aviso de que es obligatorio pero el campo se queda vacio en
+pantalla mientras la base conserva el valor anterior. Arreglalo restaurando el
+valor previo. Es un bug real y esta anotado en `00_ESTADO_ACTUAL.md`.
 
 ## Errores comunes a evitar
 
-- mezclar CSS viejo del starter con Tailwind nuevo
+- usar un color literal de Tailwind "solo por esta vez"
+- usar `font-display` por debajo de 24px, o intentar ponerle negritas
+- hacer `fetch` directo desde un componente en vez de pasar por `apiClient`
+- tocar `localStorage` fuera de `token.storage.ts`
 - poner toda la UI en un solo archivo
 - duplicar botones e inputs sin crear primitives
 - abusar de `@apply` hasta perder la simplicidad de Tailwind
-- no separar admin y publico
 
 ## Estado verificado
 
-Comprobado al actualizar esta guia:
+Comprobado al actualizar esta guia el `2026-08-23`:
 
 - `npm run lint --prefix frontend`
-- `npm run build --prefix frontend`
+- `npx tsc -b`
+- `grep -rE "stone-|slate-|gray-|zinc-" frontend/src` sin resultados
