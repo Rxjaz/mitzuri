@@ -1,81 +1,103 @@
-# Identidad de proyecto y diseno del feed
+# Identidad de proyecto y diseño del feed
 
-Documento de decision, abierto. Existe porque el feed publico se tiene que
-resolver **antes** de modelar los campos, no despues.
+Documento **cerrado** el `2026-08-23`. Registra las decisiones que se tomaron y
+por qué, no una discusión abierta.
 
-Maqueta viva en `/lab` (`frontend/src/app/public/pages/FeedLabPage.tsx`).
-Es temporal y con datos falsos; se borra cuando la direccion este elegida.
+La maqueta que vivía en `/lab` se borró: cumplió su función de ayudar a elegir
+dirección y el feed real ya existe.
 
-## El problema
+## El problema que resolvía
 
-Si todos los proyectos se pintan con la misma tarjeta, el portafolio se lee
-como un feed de Instagram: cuadros iguales en orden cronologico. Para un
-portafolio de diseno eso es un defecto, no un estilo. Cada proyecto deberia
-poder verse distinto sin que el sitio pierda unidad.
+Si todos los proyectos se pintan con la misma tarjeta, el portafolio se lee como
+un feed de redes sociales: cuadros iguales en orden cronológico. Para un
+portafolio de diseño eso es un defecto.
 
-La tension a resolver: **identidad por proyecto** contra **coherencia del
-conjunto**. Demasiada libertad y parece plantilla rota; muy poca y parece
-catalogo.
+La tensión: **identidad por proyecto** contra **coherencia del conjunto**.
+Demasiada libertad y parece plantilla rota; muy poca y parece catálogo.
 
-## Palancas de identidad, de mas barata a mas cara
+## Las palancas, y qué pasó con cada una
 
-1. **Color de acento** (`accent_color`). Un solo hex por proyecto que tine el
-   titulo, la linea de la cita y el fondo del encabezado en su pagina, y el
-   hover en el feed. Es la palanca con mejor relacion identidad/esfuerzo.
-2. **Peso en el feed** (`feed_size`: `hero`, `wide`, `regular`, `tall`).
-   Decide cuanto espacio ocupa la ficha. Es lo que rompe la cuadricula
-   uniforme y hace que el feed se lea como una revista.
-3. **Orden curado** (`sort_order`) y **destacado** (`is_featured`). El orden
-   deja de ser cronologico y pasa a ser una decision editorial.
-4. **Tagline** (`tagline`). Una linea corta bajo el titulo. Ya existe
-   `description`, pero esa es de lectura larga; en el feed se necesita algo
-   de seis a diez palabras.
-5. **Layout de la pagina** (`page_layout`: `editorial`, `full_bleed`,
-   `minimal`). La palanca mas cara: multiplica los casos de render.
+### 1. Color de acento · implementado
 
-Las opciones 1 a 4 son cuatro columnas y ningun caso nuevo de render.
-La 5 conviene dejarla para despues, cuando existan secciones.
+Un hex por proyecto que, dentro de su página, **sustituye al azul del sitio**.
+Como los tokens de Tailwind 4 son variables CSS, basta redefinir `--color-brand`
+en el elemento raíz de la página y todo lo que use `brand` cambia solo.
 
-## Variantes de feed en la maqueta
+La regla que lo ordena: azul, blanco y negro son la identidad **del sitio**; el
+acento es la del **proyecto**. Nunca compiten en la misma pantalla.
 
-### A · Editorial
+El formulario avisa si el color tiene menos de 4.5:1 de contraste sobre blanco.
+Avisa, no bloquea.
 
-Destacado grande arriba, despues mosaico asimetrico donde cada proyecto
-ocupa el ancho que le corresponde por su `feed_size`.
+### 2. Peso en el feed · descartado, y resuelto de otra forma
 
-- a favor: es el que mejor combina jerarquia e identidad, y funciona con
-  pocos proyectos igual que con muchos
-- en contra: depende de que las portadas esten bien recortadas
+Se planeó un campo `feed_size` con cuatro valores, para decidir a mano cuánto
+espacio ocupa cada ficha.
 
-### B · Indice
+Se descartó por dos razones. Primero, con cinco proyectos públicos un mosaico
+asimétrico no se lee como revista, se lee como una cuadrícula rota. Y segundo,
+resultó innecesario: al conocer el ancho y el alto reales de cada portada, **la
+propia imagen decide su tamaño**. Una portada panorámica ocupa lo ancho que es y
+una vertical lo alto que es, sin que nadie lo configure.
 
-Lista tipografica numerada. La portada aparece flotando al pasar el mouse.
+Cuatro casos de render menos y un campo menos que llenar doce veces.
 
-- a favor: muy de estudio de diseno, sobrio, rapidisimo de cargar
-- en contra: en movil pierde casi toda la gracia, y esconde el trabajo
-  visual detras de un hover
+### 3. Orden curado · implementado
 
-### C · Sangre completa
+`sort_order`. El orden del portafolio es una decisión editorial, no la fecha en
+que se hizo cada cosa. Con pocos proyectos, cuál va primero importa más que
+cuándo se hizo.
 
-Un proyecto por pantalla, portada a sangre, el color del proyecto manda.
+### 4. Tagline · pospuesto
 
-- a favor: el maximo de identidad por proyecto
-- en contra: obliga a hacer scroll largo para ver todo y necesita portadas
-  excelentes en todos los proyectos, sin excepcion
+Una línea de seis a diez palabras bajo el título, distinta de `description`, que
+es de lectura larga.
 
-### D · Pagina de proyecto
+Quedó fuera para no obligar a la diseñadora a tomar doce decisiones más mientras
+carga su trabajo. Si con el feed lleno se siente escueto, agregar la columna
+cuesta veinte minutos — y ahí la decisión se toma mirando, no imaginando.
 
-Encabezado tenido con el acento, portada ancha, y bloques alternados de
-texto, par de imagenes, cita y galeria. Sigue la narrativa del documento
-`02_EXPERIENCIA_PUBLICA.md`: contexto, reto, proceso, solucion, cierre.
+### 5. Layout de página por proyecto · descartado
 
-Los bloques de esta maqueta son, a proposito, los mismos `type` que despues
-tendra la tabla `sections`: `image`, `text`, `image_pair`, `quote`,
-`gallery`.
+Era la palanca más cara: multiplicaba los casos de render. Con el acento
+haciendo el trabajo de identidad, dejó de hacer falta.
 
-## Pendiente de decidir
+## La variante elegida: editorial
 
-- [ ] variante de feed elegida
-- [ ] si `accent_color` lo elige la disenadora o se extrae de la portada
-- [ ] si `feed_size` es libre o el sistema solo permite un destacado
-- [ ] migracion con los campos nuevos, una vez elegido lo anterior
+De las tres que se maquetaron —editorial, índice tipográfico y sangre completa—
+se eligió **editorial**: un destacado grande arriba y después un mosaico.
+
+Por qué las otras no: el índice tipográfico esconde el trabajo visual detrás de
+un hover y se cae en móvil, que es donde va a llegar buena parte de la gente. La
+sangre completa exige portadas excelentes en **todos** los proyectos, sin
+excepción, y obliga a un scroll larguísimo.
+
+## Cómo quedó el mosaico
+
+Dos columnas en escritorio, una en móvil. Y una decisión que no es obvia:
+
+**el reparto en columnas se hace en React, alternando fichas** —la primera a la
+izquierda, la segunda a la derecha, la tercera a la izquierda— en vez de usar
+`columns` de CSS.
+
+Con `columns`, las fichas fluyen hacia abajo llenando una columna antes de pasar
+a la otra, así que leyendo de izquierda a derecha el orden curado se percibe
+alterado. Alternando, se lee correcto. El precio es que las dos columnas pueden
+terminar a alturas distintas, y con imágenes de formas parecidas casi no se nota.
+
+Ninguna portada se recorta: cada marco toma la proporción real de su imagen.
+
+## Categorías
+
+Editorial, Marca e Ilustración. **Son las de la diseñadora**, tomadas de cómo
+ella misma separa su trabajo, no una taxonomía inventada.
+
+Fotografía aparecía en su lista y quedó fuera: tiene trabajo fotográfico pero no
+quiere enfocarse ahí por ahora. Se puede agregar después sin tocar nada más que
+la restricción de la base.
+
+Se guardan sin acentos y en minúsculas —`ilustracion`— y la etiqueta legible se
+arma en el frontend. Nunca se guarda texto de presentación en la base.
+
+Con doce proyectos, la categoría es una **etiqueta**, no un filtro. No hay
+navegación por categoría ni hace falta.

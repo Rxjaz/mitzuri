@@ -1,16 +1,23 @@
 # Estado actual del repo
 
-Snapshot revisado el `2026-08-11` sobre el working tree actual.
+Snapshot revisado el `2026-08-23`, contra el codigo y las once migraciones.
 
 ## Resumen ejecutivo
 
-`Mitzuri` ya tiene el CRUD de proyectos conectado de punta a punta: el admin puede listar, crear, editar, publicar, despublicar y eliminar proyectos desde la UI, sin tocar la base.
+**La v1 esta completa y en produccion.** La disenadora puede crear un proyecto,
+subirle portada y galeria, ordenarlo, publicarlo o compartirlo en privado por
+URL, y verlo en el sitio publico. Todo desde el panel, sin tocar la base ni
+depender de nadie.
 
-Los proyectos ahora tienen tres estados. `unlisted` permite compartir un proyecto terminado por URL sin que aparezca en el feed publico, que es como la disenadora trabaja con clientes.
+Las ocho fases de [04_FASES.md](04_FASES.md) estan cerradas, con una cancelada a
+proposito: la preview por token, cuyo caso de uso real lo resolvio el estado
+`unlisted`.
 
-Con eso, Fase 2 queda cerrada. Lo siguiente es el sistema visual y despues media (Fase 4).
+El riesgo ya no es que falten features: es que **nadie ha usado el producto**.
+La disenadora no lo ha tocado y sus doce proyectos siguen en un PDF. La v2 se
+planea con esa experiencia en la mano, no antes.
 
-## Cambios desde el snapshot anterior (`2026-08-09`)
+## Cambios de este snapshot (`2026-08-11` a `2026-08-23`)
 
 - se normalizaron los finales de linea con `.gitattributes`; antes cada archivo tocado en Windows aparecia como reescrito entero y ensuciaba todos los diffs
 - se agrego `CLAUDE.md` en la raiz con las convenciones del repo
@@ -68,122 +75,80 @@ Con eso, Fase 2 queda cerrada. Lo siguiente es el sistema visual y despues media
 - se creo `README.md` publico en la raiz
 - `docs/` dejo de estar versionado en git (sigue en disco, ahora en `.gitignore`)
 
-## Lo que ya existe de verdad
-
-### Infraestructura y repo
-
-- [x] Monorepo con `backend/`, `frontend/` y `docs/`.
-- [x] `.env` unico en la raiz cargado desde `backend/src/shared/utils/env.js`.
-- [x] `docker-compose.yml` para PostgreSQL 15 local.
-- [x] Scripts raiz para `dev`, `db:migrate` y `db:seed`.
-- [x] `docs/dev` y `docs/producto` ya creados como base de documentacion.
+## Lo que existe de verdad
 
 ### Backend
 
-- [x] Servidor `Express 5` arrancando desde [backend/src/server.js](../../backend/src/server.js).
-- [x] `express.json()` y `cors()` configurados en [backend/src/app.js](../../backend/src/app.js).
-- [x] Conexion PostgreSQL con `pg`, usando `DATABASE_URL` o variables discretas.
-- [x] Middleware global de errores.
-- [x] Middleware de validacion con `zod`.
-- [x] Middleware de auth con JWT.
-- [x] Modulo `auth` con `login`, `logout` y `me`.
-- [x] Modulo `projects` con CRUD y publish/unpublish.
-- [x] Utilidad para generar `slug`.
-- [x] Cliente S3 para `Cloudflare R2`.
-- [x] `404` inline en `app.js`.
+- [x] Express 5 con la cadena `routes → controller → service → repository`
+- [x] Middleware de errores, de validacion con Zod, de auth con JWT y de subida
+- [x] Modulo `auth`: `login`, `logout`, `me`
+- [x] Modulo `projects`: CRUD, tres estados y dos endpoints publicos
+- [x] Modulo `media`: subida real a R2 y edicion del texto alternativo
+- [x] Modulo `sections`: CRUD, reordenamiento y schema por tipo
+- [x] `GET /health` que comprueba la conexion a la base
+- [x] CORS con lista de origenes separados por comas
 
 ### Base de datos
 
-- [x] Runner propio de migraciones SQL con checksum.
-- [x] Tabla `schema_migrations`.
-- [x] Migraciones para `users`, `projects`, `sections`, `media_assets`, `project_preview_tokens`.
-- [x] Script de `seed` para admin local con `upsert` por email.
+- [x] Runner propio de migraciones con checksum, y tabla `schema_migrations`
+- [x] Once migraciones aplicadas, de `001` a `011`
+- [x] Seed de la administradora con `upsert` por email
+- [x] Migraciones corriendo solas al arrancar en produccion
 
 ### Frontend
 
-- [x] App con `React 19 + TypeScript + Vite`.
-- [x] `react-router-dom` instalado y usado en [frontend/src/App.tsx](../../frontend/src/App.tsx).
-- [x] Cliente HTTP compartido en [frontend/src/services/apiClient.ts](../../frontend/src/services/apiClient.ts), con `ApiError` y deteccion de `401`.
-- [x] Servicio de auth en [frontend/src/services/auth.service.ts](../../frontend/src/services/auth.service.ts).
-- [x] Storage de token aislado en [frontend/src/services/token.storage.ts](../../frontend/src/services/token.storage.ts).
-- [x] Sesion persistente en [frontend/src/app/admin/auth/AuthProvider.tsx](../../frontend/src/app/admin/auth/AuthProvider.tsx): rehidrata contra `GET /auth/me` al cargar la app.
-- [x] Guards `ProtectedRoute` y `GuestRoute`, con retorno a la ruta original tras el login.
-- [x] Pantalla `LoginPage` en [frontend/src/app/admin/pages/LoginPage.tsx](../../frontend/src/app/admin/pages/LoginPage.tsx).
-- [x] `AdminLayout` con usuario de sesion y logout.
-- [x] Tailwind 4 con capa de componentes en `src/styles/components.css`.
-- [x] Servicio de proyectos en [frontend/src/services/projects.service.ts](../../frontend/src/services/projects.service.ts).
-- [x] Listado admin de proyectos con acciones de publicar, despublicar y eliminar.
-- [x] Formulario de alta y edicion en [frontend/src/app/admin/pages/ProjectFormPage.tsx](../../frontend/src/app/admin/pages/ProjectFormPage.tsx).
-- [x] Build y lint funcionales.
+- [x] React 19 + TypeScript + Vite, con Tailwind 4 y tokens propios
+- [x] `apiClient` compartido, con `ApiError` y soporte de `FormData`
+- [x] Sesion persistente con `AuthProvider`, guards y token aislado
+- [x] Admin: login, dashboard, listado, formulario y galeria
+- [x] Publico: feed en mosaico y pagina por slug
+- [x] Tipografias self-hosted; la display solo se carga en el sitio publico
 
-## Lo que cambio frente al snapshot anterior
+## Lo que falta
 
-El snapshot anterior ya quedo desactualizado en estos puntos:
+- [ ] **Tests.** No hay ninguno
+- [ ] CI
+- [ ] Open Graph por proyecto
+- [ ] Derivados optimizados de imagen
+- [ ] Limpieza de archivos huerfanos en R2
+- [ ] Corregir el typo `"Inavlid token"` en `auth.middleware.js`
+- [ ] `last_login_at` existe en la tabla y nunca se escribe
+- [ ] Aviso de exito al guardar en el formulario de proyecto
 
-- `admin/projects` ahora si esta protegido con `authMiddleware` en `app.js`
-- `GET /auth/me` ya consulta `users` y devuelve datos reales del usuario
-- el frontend ya no es solo la pantalla minima de Vite
-- `react-router-dom` ya forma parte del stack
-- ya existe un `apiClient` reutilizable
-- ya existe un flujo base de login admin
+## Hallazgos del codigo actual
 
-## Lo que aun falta o sigue incompleto
-
-### Backend
-
-- [ ] Modulo `sections`.
-- [ ] Modulo `media`.
-- [ ] Preview privada.
-- [ ] Endpoints publicos `/projects`, `/projects/:slug` y `/preview/:token`.
-- [ ] Reglas adicionales para publicar si el producto las necesita.
-- [ ] Corregir detalles menores de calidad en auth, por ejemplo el typo `"Inavlid token"` en el middleware.
-
-### Frontend
-
-- [ ] Crear servicios de `sections` y `media`.
-- [ ] Implementar rutas publicas reales mas alla de `HomePage`.
-- [ ] Elegir variante de feed y borrar la maqueta temporal de `/lab`, ver [05_IDENTIDAD_Y_FEED.md](../producto/05_IDENTIDAD_Y_FEED.md).
-- [ ] Migracion con los campos de identidad del proyecto, una vez elegida la variante.
-- [ ] Renderer de bloques narrativos.
-
-### Calidad y operacion
-
-- [ ] Agregar tests automatizados.
-- [ ] Definir CI si se quiere automatizar calidad.
-- [ ] Consolidar documentacion de deploy.
-
-## Hallazgos importantes del codigo actual
-
-- `POST /auth/logout` exige token, pero solo responde `{ "message": "Logged out" }`; no invalida JWT. El frontend lo llama best-effort y limpia igual el token local.
-- No hay refresh token: el JWT dura `1d` y al vencer el siguiente `401` cierra la sesion. Es aceptable para un admin de una sola persona; si molesta, la solucion es refresh token, no alargar la expiracion.
-- El token vive en `localStorage`, asi que un XSS podria leerlo. La alternativa mas segura seria cookie `httpOnly`, pero implica refactor de backend (`cookie-parser`, `set-cookie`, CORS con credenciales). Decision consciente, no descuido.
-- `GET /auth/me` ya devuelve usuario real de la tabla `users`, no solo el `userId` del token.
-- `frontend/src/components/admin`, `blocks` y `shared` siguen vacios; solo `ui/` tiene contenido.
-- `frontend/src/App.css` sigue teniendo restos del starter de Vite.
-
-### Deuda aceptada a proposito en la subida de portada
-
-Documentada, no resuelta. Con ~10 proyectos, limpiar huerfanos a mano cuesta
-menos que construir la limpieza automatica.
-
-- Subir una imagen y no guardar el proyecto deja el archivo huerfano en R2.
-- Reemplazar una portada no borra la anterior.
-- Borrar un proyecto no borra su portada.
-- No se generan derivados optimizados; `optimized_url` queda en `null`.
-- El asset no queda asociado al proyecto en la base: `projects.cover_image_url`
-  sigue siendo una URL suelta. Cuando existan las secciones se decide si la
-  portada pasa a ser una llave foranea a `media_assets`.
+- `POST /auth/logout` exige token pero no invalida el JWT. El frontend lo llama
+  best-effort y limpia igual el token local
+- No hay refresh token: el JWT dura `1d` y al vencer el siguiente `401` cierra la
+  sesion. Aceptable para una sola administradora
+- El token vive en `localStorage`, asi que un XSS podria leerlo. La alternativa
+  segura seria cookie `httpOnly`, con refactor de backend y CORS con
+  credenciales. Decision consciente, no descuido
+- `is_active` si se respeta en `login` y en `getMe`: desactivar una cuenta
+  invalida sus tokens en la siguiente peticion
+- Quedaron carpetas vacias de decisiones revertidas:
+  `backend/src/shared/validators/` —la validacion vive en los schemas de cada
+  modulo— y `frontend/src/components/{admin,blocks,shared}` —todo lo compartido
+  acabo en `ui/`—. Git no las rastrea, pero conviene borrarlas del disco
+- Sobran dos `.gitkeep` cuyas carpetas ya tienen contenido:
+  `frontend/src/app/admin/layout/` y `frontend/src/components/ui/`
+- `frontend/src/App.css` esta vacio y no se importa desde ningun lado. Es un
+  resto del starter de Vite
 
 ## Verificacion tecnica realizada
 
-Comprobado el `2026-08-09`:
+Comprobado el `2026-08-23`:
 
-- [x] `npm run lint --prefix frontend`
-- [x] `npm run build --prefix frontend`
 - [x] `npm run lint --prefix backend`
-- [x] Smoke test HTTP contra el backend local: login, crear con `cover_image_url`, editar, publicar, error de validacion de `year`, y borrar con `204`.
+- [x] `npm run lint --prefix frontend`
+- [x] `npx tsc -b` en frontend
+- [x] `grep -rE "stone-|slate-|gray-|zinc-" frontend/src` sin resultados
+- [x] Once migraciones contrastadas una por una contra lo que dicen los
+      documentos
+- [x] Flujo completo probado en produccion: login, alta, subida de portada,
+      galeria, reordenamiento, publicar, compartir en privado y abrir la URL de
+      un proyecto directo en el navegador
 
-Pendiente de verificar manualmente en navegador: alta, edicion, publicar/despublicar y borrado desde la UI.
 
 ## Lectura rapida del momento del proyecto
 
