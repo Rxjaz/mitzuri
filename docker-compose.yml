@@ -1,6 +1,6 @@
 services:
   db:
-    image: postgres:15
+    image: postgres:18
     container_name: postgres-mitzuri
     restart: always
     environment:
@@ -8,7 +8,9 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      # desde postgres 18 el montaje va aqui, no en /data: la imagen crea dentro
+      # una carpeta por version mayor, para poder actualizar con pg_upgrade
+      - postgres_data:/var/lib/postgresql
     ports:
       - "5432:5432"
 
