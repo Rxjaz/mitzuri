@@ -197,9 +197,70 @@ Pendiente de verificar manualmente en navegador: alta, edicion, publicar/despubl
 8. ~~sitio publico minimo: feed y pagina de proyecto~~ hecho
 9. ~~galeria de imagenes por proyecto~~ hecho
 10. ~~portada con proporcion real y feed adaptable~~ hecho
-11. metadatos del portafolio: categorias, herramientas, acento, creditos
-12. deploy
+11. ~~metadatos del portafolio: categorias, herramientas, acento, creditos~~ hecho
+12. ~~deploy~~ hecho
 13. contenido real cargado por la disenadora
+
+## En produccion
+
+Desplegado y funcionando desde el `2026-08-23`:
+
+| Pieza | Donde vive |
+| --- | --- |
+| Sitio publico y admin | Vercel, plan Hobby, en `mitzuri.com` y `www.mitzuri.com` |
+| API | Render, plan gratuito, en `api.mitzuri.com` |
+| Base de datos | Neon, plan gratuito, Postgres 18, region Ohio |
+| Imagenes | Cloudflare R2, servidas por `cdn.mitzuri.com` |
+
+Render y Neon estan en la misma region a proposito: cada carga de pagina son
+varias consultas del backend a la base.
+
+`GET /health` responde el estado del servidor y de la conexion a la base. Es la
+primera parada para diagnosticar cualquier fallo en produccion.
+
+## Deuda y pendientes abiertos
+
+Ninguno bloquea hoy. Todos tienen fecha de caducidad.
+
+### Antes de compartir el sitio en serio
+
+- **El backend duerme.** El plan gratuito de Render apaga el servicio a los 15
+  minutos sin trafico, y la siguiente visita tarda entre 30 y 60 segundos. Para
+  que la disenadora cargue contenido da igual; para ensenarle el sitio a alguien
+  a quien se quiere impresionar, no. Salidas: mover las subidas a URLs firmadas
+  y pasar el backend a Vercel, o pagar un plan que no duerma
+- **El plan Hobby de Vercel es solo para uso no comercial**, y su definicion
+  incluye al freelancer que escribe el codigo. Si esto es trabajo pagado, o se
+  pasa a Pro o se mueve el frontend a Cloudflare Pages, que si permite uso
+  comercial y no tiene tope de trafico
+- **El README no tiene captura del panel.** Es lo primero que busca alguien que
+  abre un repositorio de portafolio
+
+### Fragilidades conocidas
+
+- **`apiClient` devuelve vacio en silencio** cuando la respuesta no es JSON. En
+  el deploy eso convirtio una variable de entorno mal configurada en una pantalla
+  en blanco sin pistas, porque el `vercel.json` hace que cualquier ruta responda
+  `200` con HTML. Deberia lanzar un error claro
+- **No hay tests.** Fue una decision consciente mientras cada cambio pasaba por
+  spec y auditoria de diff. Con contenido real cargado, deja de serlo
+- Borrar una seccion o cambiar una portada **no borra el archivo en R2**. Con
+  este volumen, limpiar a mano cuesta menos que automatizarlo
+
+### Decisiones pospuestas a proposito
+
+- **`tagline`**: cuarta palanca de identidad, fuera para no obligar a la
+  disenadora a decidir doce veces mas mientras carga. Se retoma viendo el feed
+  lleno
+- **Preview por token para borradores**: unico punto de `01_ALCANCE_V1.md` sin
+  cerrar. Su caso de uso real —compartir trabajo terminado en privado— ya lo
+  cubre `unlisted`; solo falta ensenar un borrador a medias
+- **Tipos de bloque `text`, `quote`, `gallery`, `beforeAfter`**: el mapa de
+  schemas en `sections.schemas.js` ya esta listo para recibirlos. Se decidio
+  empezar solo con `image` porque el contenido real de la disenadora es un
+  parrafo corto mas imagenes
+- **Fotografia como cuarta categoria**: tiene trabajo fotografico, pero no
+  quiere enfocarse ahi por ahora
 
 Nota de prioridad, `2026-08-19`: la v1 esta funcionalmente completa contra los
 criterios de [01_ALCANCE_V1.md](../producto/01_ALCANCE_V1.md), con una sola
