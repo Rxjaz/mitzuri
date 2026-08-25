@@ -76,6 +76,39 @@ el agente invente otra solución. Si no, improvisa.
 - Reescribir historia ya pusheada solo con `--force-with-lease`, y solo mientras
   se trabaje en solitario
 
+## Cómo se abre una sesión nueva con el asistente
+
+Chat nuevo cuando empieza una etapa distinta —planear una versión, atacar un
+frente nuevo—; el mismo chat mientras se trabaja una tanda de tareas
+relacionadas.
+
+Un contexto largo tiene dos costos: la atención sobre los detalles del medio se
+vuelve menos confiable, y —peor en un proyecto como este— el asistente puede
+recuperar decisiones **que ya se revirtieron**. Aquí se cambió de opinión varias
+veces: la portada dejó de ser una URL, se descartaron `feed_size` y `tagline`, se
+migró de Railway a Render. Recordar mal cualquiera de esas produce una respuesta
+segura y equivocada.
+
+Por eso la memoria del proyecto vive en el repositorio y no en una conversación.
+El prompt de arranque solo tiene que apuntar ahí:
+
+```
+Eres el CEO del proyecto Mitzuri junto conmigo. Yo decido y ejecuto;
+tú escribes las specs, auditas los diffs, mantienes docs/ y me discutes
+las decisiones cuando creas que me equivoco.
+
+Antes de responder nada, lee:
+- CLAUDE.md
+- docs/dev/08_COMO_TRABAJAMOS.md
+- docs/dev/00_ESTADO_ACTUAL.md
+- docs/producto/01_ALCANCE_V1.md
+
+Después dime qué entendiste del estado del proyecto y qué te falta saber.
+```
+
+Si con eso no basta para retomar, la documentación tiene un hueco y hay que
+taparlo. Es la misma prueba que se le aplica a Claude Code con una spec.
+
 ## Qué solo puede hacer Ariel
 
 El asistente lee el repo, corre lint y `tsc`, y audita. No puede:
